@@ -198,37 +198,73 @@ def build_ass(script_text: str, duration: float, out_ass: str) -> None:
             )
 
 
+def load_words_from_transcript(transcript_source) -> list:
+    """
+    Extract a flat list of {'word': str, 'start': float, 'end': float}
+    from a JSON file path, dict, or list of words.
+    """
+    import json
+    if isinstance(transcript_source, str) and os.path.isfile(transcript_source):
+        with open(transcript_source, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    elif isinstance(transcript_source, (dict, list)):
+        data = transcript_source
+    else:
+        return []
+
+    if isinstance(data, list):
+        return data
+
+    words = []
+    if isinstance(data, dict):
+        if "words" in data and isinstance(data["words"], list):
+            return data["words"]
+        for seg in data.get("segments", []):
+            for w in seg.get("words", []):
+                words.append({
+                    "word": w.get("word", "").strip(),
+                    "start": float(w.get("start", 0.0)),
+                    "end": float(w.get("end", 0.0)),
+                })
+    return words
+
+
 def build_karaoke_ass(
-    word_list: list,
-    out_ass: str,
+    words: list,
+    out_ass_path: str,
     min_chunk_words: int = 3,
-    max_chunk_words: int = 5,
+    max_chunk_words: int = 4,
 ) -> None:
     """
     Generate kinetic ASS subtitles with active word-by-word yellow karaoke highlighting.
-    word_list: list of dicts with keys 'word', 'start', 'end'.
-    - Chunks text into 3-5 words per line.
-    - Highlights active word in yellow (&H00FFFF&) and inactive words in white (&H00FFFFFF&).
-    - Sets MarginV=240 (bottom safe margin) to prevent collision with Shorts UI.
+    words: list of dicts with keys 'word', 'start', 'end' (or transcript JSON path).
+    - Chunks word streams into 3-4 words per line.
+    - Font size: FontSize=80 (~8% of 1920 vertical height).
+    - Base color: fully opaque white (&H00FFFFFF&).
+    - Highlight color: vibrant yellow (&H00FFFF&).
+    - Safe margin: MarginV=240 (bottom safe margin avoiding Shorts UI).
     """
-    if not word_list:
+    if isinstance(words, (str, dict)):
+        words = load_words_from_transcript(words)
+
+    if not words:
         return
 
     # Clean words and filter valid timestamps
     valid_words = []
-    for w in word_list:
+    for w in words:
         txt = w.get("word", "").strip()
         if txt and "start" in w and "end" in w:
             valid_words.append({
                 "word": txt,
-                "start": float(w["start"]),
+                "start": max(0.0, float(w["start"])),
                 "end": max(float(w["end"]), float(w["start"]) + 0.05),
             })
 
     if not valid_words:
         return
 
-    # Chunk into 3-5 word phrases, breaking on sentence ends or max chunk limit
+    # Chunk into 3-4 word phrases, breaking on sentence ends or max chunk limit
     chunks = []
     current_chunk = []
 
@@ -254,7 +290,7 @@ def build_karaoke_ass(
         "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
         "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding\n"
-        "Style: Default,Arial,82,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,"
+        "Style: Default,Arial,80,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,"
         "-1,0,0,0,100,100,0,0,1,3,1,2,40,40,240,1\n"
         "\n"
         "[Events]\n"
@@ -262,20 +298,20 @@ def build_karaoke_ass(
         "MarginL, MarginR, MarginV, Effect, Text\n"
     )
 
-    with open(out_ass, "w", encoding="utf-8") as f:
+    with open(out_ass_path, "w", encoding="utf-8") as f:
         f.write(header)
 
         for chunk in chunks:
             # For each word in the chunk, generate an active highlight event
             for idx, active_word in enumerate(chunk):
                 w_start = active_word["start"]
-                # Extend word end to the next word's start to avoid blank flickers
+                # Extend active highlight until the next word starts to prevent flickering
                 if idx + 1 < len(chunk):
-                    w_end = min(active_word["end"], chunk[idx + 1]["start"])
+                    w_end = max(w_start + 0.05, chunk[idx + 1]["start"])
                 else:
-                    w_end = active_word["end"]
+                    w_end = max(w_start + 0.05, active_word["end"])
 
-                # Build line where active_word is yellow and other words are white
+                # Build line where active_word is yellow (&H00FFFF&) and others are white (&H00FFFFFF&)
                 line_parts = []
                 for j, w in enumerate(chunk):
                     w_text = w["word"]
@@ -295,15 +331,45 @@ def build_karaoke_ass(
 build_kinetic_ass = build_karaoke_ass
 
 
-def build_short_from_clip(
+def burn_subtitles_and_grade(
     video_path: str,
     words_data: list,
-    out_path: str,
+    out_path: str = None,
+    start_time: float = None,
+    duration: float = None,
 ) -> str:
     """
     Burn kinetic subtitles and cinematic color grading into a 9:16 vertical clip.
-    Applies -vf "eq=contrast=1.12:saturation=1.15:brightness=-0.02,subtitles=<ass_file>"
+    Applies unified filtergraph:
+      -vf "eq=contrast=1.12:saturation=1.15:brightness=-0.02,subtitles=<ass_filename>"
+    Executed inside the subtitle directory to avoid Windows drive-letter escaping issues.
     """
+    if isinstance(words_data, (str, dict)):
+        words_data = load_words_from_transcript(words_data)
+
+    # If start_time is specified, slice words to relative timestamps
+    if start_time is not None and start_time > 0:
+        end_time = (start_time + duration) if duration else float("inf")
+        filtered_words = []
+        for w in words_data:
+            ws = float(w["start"])
+            we = float(w["end"])
+            if ws >= start_time - 0.2 and we <= end_time + 0.5:
+                rel_start = max(0.0, round(ws - start_time, 3))
+                rel_end = max(rel_start + 0.05, round(we - start_time, 3))
+                filtered_words.append({
+                    "word": w["word"],
+                    "start": rel_start,
+                    "end": rel_end,
+                })
+        words_data = filtered_words
+
+    if not out_path:
+        base_name = os.path.splitext(os.path.basename(video_path))[0]
+        out_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "output"))
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, f"{base_name}_short_01.mp4")
+
     out_abs = os.path.abspath(out_path)
     os.makedirs(os.path.dirname(out_abs), exist_ok=True)
 
@@ -337,9 +403,14 @@ def build_short_from_clip(
             f"subtitles={ass_name}"
         )
 
-    cmd = [
-        _find_tool("ffmpeg"), "-y",
-        "-i", os.path.abspath(video_path),
+    cmd = [_find_tool("ffmpeg"), "-y"]
+    if start_time is not None and start_time > 0:
+        cmd.extend(["-ss", str(start_time)])
+    cmd.extend(["-i", os.path.abspath(video_path)])
+    if duration is not None:
+        cmd.extend(["-t", str(duration)])
+
+    cmd.extend([
         "-vf", vf,
         "-c:v", "libx264",
         "-crf", "18",
@@ -348,10 +419,15 @@ def build_short_from_clip(
         "-c:a", "aac",
         "-b:a", "192k",
         out_abs,
-    ]
+    ])
 
     subprocess.run(cmd, check=True, cwd=ass_dir)
+    print(f"Burned subtitles and applied cinematic grade to: {out_abs}")
     return out_abs
+
+
+# Backward compatibility alias
+build_short_from_clip = burn_subtitles_and_grade
 
 
 # ── Multi-Clip Video Builder ──────────────────────────────────────────────────
@@ -504,20 +580,33 @@ def build_video(
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         print("Usage:")
-        print("  Poster fallback: python build_video.py poster.jpg audio.mp3 \"script\" out.mp4")
-        print("  Multi-clip     : python build_video.py clip1.mp4,clip2.mp4 audio.mp3 \"script\" out.mp4")
+        print("  Burn Karaoke Subtitles: python build_video.py <clip.mp4> <transcript.json> [out.mp4]")
+        print("  Poster Ken Burns      : python build_video.py poster.jpg audio.mp3 \"script\" out.mp4")
+        print("  Multi-clip Concat     : python build_video.py clip1.mp4,clip2.mp4 audio.mp3 \"script\" out.mp4")
         sys.exit(1)
 
     first_arg = sys.argv[1]
-    audio_arg = sys.argv[2]
-    script_arg = sys.argv[3]
-    out_arg = sys.argv[4]
+    second_arg = sys.argv[2]
 
-    if "," in first_arg:
-        clip_list = [c.strip() for c in first_arg.split(",")]
-        build_multi_clip_video(clip_list, audio_arg, script_arg, out_arg)
-    else:
-        build_video(first_arg, audio_arg, script_arg, out_arg)
-    print(f"Saved video to {out_arg}")
+    # Mode 1: Burn subtitles and color grade from transcript JSON
+    if len(sys.argv) == 3 or (len(sys.argv) == 4 and second_arg.lower().endswith((".json", ".ass"))):
+        out_arg = sys.argv[3] if len(sys.argv) > 3 else None
+        res = burn_subtitles_and_grade(first_arg, second_arg, out_arg)
+        print(f"Rendered short to {res}")
+        sys.exit(0)
+
+    # Mode 2 & 3: Multi-clip demuxer or poster fallback
+    if len(sys.argv) >= 5:
+        audio_arg = sys.argv[2]
+        script_arg = sys.argv[3]
+        out_arg = sys.argv[4]
+
+        if "," in first_arg:
+            clip_list = [c.strip() for c in first_arg.split(",")]
+            build_multi_clip_video(clip_list, audio_arg, script_arg, out_arg)
+        else:
+            build_video(first_arg, audio_arg, script_arg, out_arg)
+        print(f"Saved video to {out_arg}")
+        sys.exit(0)

@@ -89,37 +89,38 @@ def _init_haar_cascade_detector():
 
 def get_face_detector():
     """
-    Automated fallback check:
-    1. Attempt import mediapipe as mp (MediaPipe FaceDetection)
-    2. If unavailable, fall back to OpenCV built-in DNN Face Detector (cv2.dnn / cv2.FaceDetectorYN)
-    3. If DNN unavailable, fall back to cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    Model Loader & Fallback Hierarchy:
+    1. Check assets/models/face_detection_yunet_2023mar.onnx via cv2.FaceDetectorYN (fast, modern, accurate)
+    2. Fall back to assets/models/haarcascade_frontalface_default.xml via cv2.CascadeClassifier
+    3. Fall back to MediaPipe if available
+    4. If no face is detected in a frame, fall back to dead-center framing (0.5).
     """
     global _DETECTOR_CACHE
     if _DETECTOR_CACHE is not None:
         return _DETECTOR_CACHE
 
-    # 1. Attempt MediaPipe
+    # 1. Primary: YuNet ONNX Face Detector
+    dnn_det = _init_opencv_dnn_detector()
+    if dnn_det is not None:
+        print("[face_crop] Using OpenCV DNN Face Detector (YuNet ONNX).")
+        _DETECTOR_CACHE = ("opencv_dnn", dnn_det)
+        return _DETECTOR_CACHE
+
+    # 2. Fallback: Haar Cascade Classifier
+    cascade_det = _init_haar_cascade_detector()
+    if cascade_det is not None:
+        print("[face_crop] YuNet unavailable. Using OpenCV Haar Cascade Classifier (haarcascade_frontalface_default.xml).")
+        _DETECTOR_CACHE = ("haar_cascade", cascade_det)
+        return _DETECTOR_CACHE
+
+    # 3. Fallback: MediaPipe Face Detection
     mp_det = _init_mediapipe_detector()
     if mp_det is not None:
         print("[face_crop] Using MediaPipe FaceDetection.")
         _DETECTOR_CACHE = ("mediapipe", mp_det)
         return _DETECTOR_CACHE
 
-    # 2. Fall back to OpenCV DNN Face Detector (cv2.dnn / cv2.FaceDetectorYN)
-    dnn_det = _init_opencv_dnn_detector()
-    if dnn_det is not None:
-        print("[face_crop] MediaPipe unavailable. Using OpenCV DNN Face Detector (cv2.dnn).")
-        _DETECTOR_CACHE = ("opencv_dnn", dnn_det)
-        return _DETECTOR_CACHE
-
-    # 3. Fall back to OpenCV Haar Cascade
-    cascade_det = _init_haar_cascade_detector()
-    if cascade_det is not None:
-        print("[face_crop] MediaPipe & DNN unavailable. Using cv2.CascadeClassifier(haarcascade_frontalface_default.xml).")
-        _DETECTOR_CACHE = ("haar_cascade", cascade_det)
-        return _DETECTOR_CACHE
-
-    print("[face_crop] WARNING: No face detector could be loaded; defaulting to center frame (0.5).")
+    print("[face_crop] WARNING: No local face models loaded; defaulting to dead-center framing (0.5).")
     _DETECTOR_CACHE = ("none", None)
     return _DETECTOR_CACHE
 
@@ -298,7 +299,7 @@ def auto_crop_clip(
 
     ffmpeg_bin = _find_tool("ffmpeg")
 
-    vf = f"crop={crop_w}:{src_h}:{crop_x}:0,scale=1080:1920"
+    vf = f"crop=ih*(9/16):ih:{crop_x}:0,scale=1080:1920"
 
     cmd = [
         ffmpeg_bin, "-y",
@@ -326,17 +327,36 @@ def main():
     )
     parser.add_argument("video", help="Path to source video file")
     parser.add_argument("-s", "--start", type=float, required=True, help="Start timestamp in seconds")
-    parser.add_argument("-t", "--duration", type=float, required=True, help="Duration in seconds")
-    parser.add_argument("-o", "--output", required=True, help="Output destination path (.mp4)")
+    parser.add_argument("-t", "--duration", type=float, help="Duration in seconds")
+    parser.add_argument("-e", "--end", type=float, help="End timestamp in seconds")
+    parser.add_argument("-o", "--output", help="Output destination path (.mp4)")
     parser.add_argument("--interval", type=float, default=0.3, help="Sampling interval in seconds (default: 0.3s)")
     args = parser.parse_args()
+
+    if args.duration is not None:
+        duration = args.duration
+    elif args.end is not None:
+        duration = args.end - args.start
+    else:
+        duration = 30.0
+
+    if duration <= 0:
+        print(f"ERROR: Invalid duration ({duration}s). End must be greater than start.", file=sys.stderr)
+        sys.exit(1)
+
+    out_path = args.output
+    if not out_path:
+        base_name = os.path.splitext(os.path.basename(args.video))[0]
+        out_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "clips"))
+        os.makedirs(out_dir, exist_ok=True)
+        out_path = os.path.join(out_dir, f"{base_name}_clip_01.mp4")
 
     try:
         auto_crop_clip(
             args.video,
             start=args.start,
-            duration=args.duration,
-            out_path=args.output,
+            duration=duration,
+            out_path=out_path,
             sample_interval=args.interval,
         )
     except Exception as e:

@@ -1,0 +1,31 @@
+STRUCTURE (20-28 seconds spoken, ~50-75 words total; 150 wpm pace):
+HARD CEILING: 75 words (~30 seconds max) — NEVER exceed this.
+
+1. THE HOOK (0:00–0:05, 10–15 words):
+   Pose an unresolved plot mystery, ambiguous frame, or recurring theory.
+   Start mid-thought; immediately provoke the viewer's curiosity.
+   e.g. "Did Cobb actually escape the dream at the end of Inception?"
+   e.g. "Who was Keyser Soze really working for the entire time?"
+
+2. THE AUTHORITY PIVOT (0:05–0:08, 10–15 words):
+   Introduce directorial intent, a hidden camera trick, or overlooked proof.
+   Promise immediate closure to stop the scroll.
+   e.g. "Christopher Nolan hid the real clue in plain sight, and fans missed it."
+   e.g. "The director subtly confirmed the one detail that changes everything."
+
+3. THE PERSPECTIVE SHIFT (0:08–0:16, 20–30 words):
+   Deliver the deeper narrative truth or thematic payoff. Focus on one concrete detail.
+   e.g. "Look at his wedding ring. Cobb only wears it in dream layers. In the real world, the ring is gone—and in the final shot, his hand is bare."
+   e.g. "Look at the office bulletin board. Every name, place, and detail Kint described was pulled from the wall right in front of him."
+
+4. THE VISUAL LOOP (0:16–0:22, 10–15 words):
+   Re-ask the opening premise and tie directly back to the opening shot for infinite rewatch loops.
+   e.g. "Which means every time you rewatch that spinning top, you already know the truth."
+   e.g. "Which means the moment you rewatch his opening limp, the disguise is obvious."
+
+RULES:
+- Keep the script strictly between 50 and 75 words.
+- Spoken language style: short punchy sentences, zero fluff.
+- Focus on one single ambiguous question or Easter egg per Short.
+- No generic synopsis or rating recaps in mystery mode.
+- End cleanly on the loop line so the video seamlessly repeats.

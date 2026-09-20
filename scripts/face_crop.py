@@ -321,6 +321,10 @@ def auto_crop_clip(
     return out_abs
 
 
+# Canonical alias matching Layer 4 orchestrator specification
+crop_to_vertical = auto_crop_clip
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Face-tracking auto-cropper for 9:16 vertical Shorts."

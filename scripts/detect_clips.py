@@ -13,7 +13,11 @@ import os
 import re
 import sys
 
-from transcribe import transcribe_video, slugify
+try:
+    from transcribe import transcribe_video, slugify
+except ImportError:
+    sys.path.insert(0, os.path.dirname(__file__))
+    from transcribe import transcribe_video, slugify
 
 _PUNCH_WORDS = {
     "who", "what", "why", "how", "never", "actually", "real", "really",
@@ -61,35 +65,84 @@ def _score_segment(text: str, duration: float, words_count: int) -> float:
     return round(score, 2)
 
 
-def detect_clips(
-    video_path: str,
-    transcript: dict = None,
-    min_duration: float = 30.0,
-    max_duration: float = 60.0,
+def compute_audio_rms(wav_path: str, start: float, duration: float) -> float:
+    """Compute normalized RMS acoustic energy (0.0 to 1.0) for a time slice using stdlib wave + numpy."""
+    if not wav_path or not os.path.isfile(wav_path):
+        return 0.5
+    try:
+        import wave
+        import numpy as np
+        with wave.open(wav_path, "rb") as wf:
+            framerate = wf.getframerate()
+            n_channels = wf.getnchannels()
+            sampwidth = wf.getsampwidth()
+            total_frames = wf.getnframes()
+            start_frame = max(0, int(start * framerate))
+            num_frames = max(1, int(duration * framerate))
+            if start_frame >= total_frames:
+                return 0.5
+            wf.setpos(start_frame)
+            raw = wf.readframes(min(num_frames, total_frames - start_frame))
+
+        if not raw:
+            return 0.5
+
+        if sampwidth == 2:
+            data = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+        elif sampwidth == 4:
+            data = np.frombuffer(raw, dtype=np.int32).astype(np.float32) / 2147483648.0
+        else:
+            data = np.frombuffer(raw, dtype=np.int8).astype(np.float32) / 128.0
+
+        if n_channels > 1:
+            data = data[::n_channels]
+
+        rms = float(np.sqrt(np.mean(data ** 2)))
+        return min(rms * 12.0, 1.0)
+    except Exception:
+        return 0.5
+
+
+def find_top_n_clips(
+    transcript: dict,
+    audio_path: str = None,
     top_n: int = 3,
+    min_duration: float = 25.0,
+    max_duration: float = 55.0,
 ) -> list:
     """
-    Scan transcript segments for 30–60s clips, snapping to silence gaps (>0.4s)
-    and sentence ends to prevent audio clipping.
+    Autonomous curation engine:
+    1. Aggregates words into sentence units bounded by terminal punctuation (. ! ?) and silence gaps (>0.4s).
+    2. Slides candidate windows strictly snapped to sentence boundaries within [min_duration, max_duration].
+    3. Scores segments using multi-signal virality metrics:
+       - Question & Answer hook structure
+       - Punch word density
+       - Speech cadence (120–170 wpm)
+       - Acoustic RMS energy peaks
+    4. Deduplicates and returns the top N non-overlapping clips with hook_title.
     """
-    if transcript is None:
-        transcript = transcribe_video(video_path)
+    if isinstance(transcript, str) and os.path.isfile(transcript):
+        with open(transcript, "r", encoding="utf-8") as f:
+            transcript = json.load(f)
 
-    segments = transcript.get("segments", [])
+    if isinstance(transcript, list):
+        segments = transcript
+    else:
+        segments = transcript.get("segments", []) if isinstance(transcript, dict) else []
+
     if not segments:
         return []
 
     candidates = []
 
-    # Slide over segments to form complete sentences totaling min_duration to max_duration
+    # Slide over segments to form complete sentence boundaries totaling min_duration to max_duration
     for i in range(len(segments)):
-        # Check start boundary: snap to silence gaps (>0.4s) or clean sentence start
-        start_time = segments[i]["start"]
+        start_time = float(segments[i]["start"])
         is_clean_start = False
         if i == 0:
             is_clean_start = True
         else:
-            pause_before = start_time - segments[i - 1]["end"]
+            pause_before = start_time - float(segments[i - 1]["end"])
             prev_ended = any(segments[i - 1]["text"].strip().endswith(p) for p in (".", "!", "?"))
             if pause_before >= 0.4 or prev_ended:
                 is_clean_start = True
@@ -99,7 +152,7 @@ def detect_clips(
 
         for j in range(i, len(segments)):
             seg = segments[j]
-            end_time = seg["end"]
+            end_time = float(seg["end"])
             dur = end_time - start_time
 
             current_text_parts.append(seg["text"].strip())
@@ -107,13 +160,12 @@ def detect_clips(
 
             if dur >= min_duration:
                 if dur <= max_duration:
-                    # Check end boundary: snap to sentence end or silence gap (>0.4s)
                     is_clean_end = False
                     ends_with_punc = any(seg["text"].strip().endswith(p) for p in (".", "!", "?"))
                     if ends_with_punc:
                         is_clean_end = True
                     elif j + 1 < len(segments):
-                        pause_after = segments[j + 1]["start"] - end_time
+                        pause_after = float(segments[j + 1]["start"]) - end_time
                         if pause_after >= 0.4:
                             is_clean_end = True
                     elif j == len(segments) - 1:
@@ -122,17 +174,25 @@ def detect_clips(
                     text_block = " ".join(current_text_parts)
                     score = _score_segment(text_block, dur, words_in_window)
                     if is_clean_start and is_clean_end:
-                        score += 1.5  # High priority for cleanly snapped audio boundaries
+                        score += 1.5
 
-                    # Extract the hook (first sentence or first 12 words)
+                    # Multi-signal acoustic energy heuristic
+                    if audio_path and os.path.isfile(audio_path):
+                        rms_val = compute_audio_rms(audio_path, start_time, dur)
+                        score += round(rms_val * 2.0, 2)
+
                     first_sentence = re.split(r'(?<=[.!?])\s+', text_block)[0]
                     hook = first_sentence if len(first_sentence.split()) <= 15 else " ".join(first_sentence.split()[:12]) + "..."
+                    hook_title = re.sub(r'[\r\n\t]+', ' ', hook).strip(' .!?…')
+                    if len(hook_title) > 55:
+                        hook_title = hook_title[:52].rsplit(' ', 1)[0] + '...'
 
                     candidates.append({
                         "start": round(start_time, 2),
                         "end": round(end_time, 2),
                         "duration": round(dur, 2),
-                        "score": score,
+                        "score": round(score, 2),
+                        "hook_title": hook_title,
                         "hook": hook,
                         "text": text_block,
                         "clean_boundary": is_clean_start and is_clean_end,
@@ -142,36 +202,36 @@ def detect_clips(
                 else:
                     break
 
-    # If no window met the exact min/max bounds (e.g. video is under min_duration),
-    # use the entire video duration as a single candidate
+    # Fallback if no window fit the strict range
     if not candidates and segments:
-        full_dur = segments[-1]["end"] - segments[0]["start"]
+        full_dur = float(segments[-1]["end"]) - float(segments[0]["start"])
+        raw_hook = segments[0]["text"][:60].strip()
+        hook_title = re.sub(r'[\r\n\t]+', ' ', raw_hook).strip(' .!?…')
         candidates.append({
-            "start": round(segments[0]["start"], 2),
-            "end": round(segments[-1]["end"], 2),
+            "start": round(float(segments[0]["start"]), 2),
+            "end": round(float(segments[-1]["end"]), 2),
             "duration": round(full_dur, 2),
             "score": 8.0,
-            "hook": segments[0]["text"][:60],
-            "text": transcript.get("text", ""),
+            "hook_title": hook_title,
+            "hook": raw_hook,
+            "text": transcript.get("text", "") if isinstance(transcript, dict) else " ".join(s["text"] for s in segments),
             "start_segment_id": segments[0].get("id", 0),
             "end_segment_id": segments[-1].get("id", len(segments) - 1),
         })
 
-    # Deduplicate overlapping candidates (keep highest score)
+    # Deduplicate overlapping candidates (retain highest virality score)
     candidates.sort(key=lambda x: x["score"], reverse=True)
     selected = []
 
     for cand in candidates:
         overlap = False
         for s in selected:
-            # Check if intervals overlap significantly (> 40% duration)
+            # Strict non-overlapping intervals (zero overlap)
             ov_start = max(cand["start"], s["start"])
             ov_end = min(cand["end"], s["end"])
             if ov_end > ov_start:
-                ov_len = ov_end - ov_start
-                if ov_len / min(cand["duration"], s["duration"]) > 0.4:
-                    overlap = True
-                    break
+                overlap = True
+                break
         if not overlap:
             selected.append(cand)
             if len(selected) >= top_n:
@@ -181,6 +241,33 @@ def detect_clips(
         item["rank"] = rank
 
     return selected
+
+
+def detect_clips(
+    video_path: str,
+    transcript: dict = None,
+    min_duration: float = 30.0,
+    max_duration: float = 60.0,
+    top_n: int = 3,
+) -> list:
+    """Backward-compatible wrapper for find_top_n_clips."""
+    if transcript is None:
+        transcript = transcribe_video(video_path)
+
+    # Attempt to locate extracted audio file
+    base_name = os.path.splitext(os.path.basename(video_path))[0]
+    slug = slugify(base_name)
+    audio_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "audio", f"{slug}_16k.wav"))
+    if not os.path.isfile(audio_path):
+        audio_path = None
+
+    return find_top_n_clips(
+        transcript=transcript,
+        audio_path=audio_path,
+        top_n=top_n,
+        min_duration=min_duration,
+        max_duration=max_duration,
+    )
 
 
 def main():

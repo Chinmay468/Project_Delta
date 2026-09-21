@@ -24,6 +24,14 @@ SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
 ASSETS_DIR = os.path.join(REPO_ROOT, "assets")
 CONFIG_DIR = os.path.join(REPO_ROOT, "config")
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(CONFIG_DIR, ".env"))
+except ImportError:
+    pass
+
+MEDIA_DIR = os.getenv("MEDIA_DIR", r"D:\Media")
+
 sys.path.insert(0, REPO_ROOT)
 sys.path.insert(0, SCRIPTS_DIR)
 
@@ -130,77 +138,136 @@ def get_video_info(video_path: str) -> dict:
         return {"width": 0, "height": 0, "duration": 0.0}
 
 
-def scan_available_videos() -> list:
-    """Scan assets/clips, D:\\Media\\movies, assets, and assets/output for video files."""
-    extensions = (".mp4", ".mkv", ".mov", ".avi")
-    found = []
+def scan_available_videos() -> tuple:
+    """
+    Scan D:\\Media library and local assets/clips for video files.
+    Returns (media_movies, local_clips).
+    """
+    extensions = (".mp4", ".mkv", ".mov", ".avi", ".webm")
+    media_movies = []
+    local_clips = []
     seen = set()
 
-    search_dirs = [
-        os.path.join(ASSETS_DIR, "clips"),
-        r"D:\Media\movies",
-        ASSETS_DIR,
-        os.path.join(ASSETS_DIR, "output"),
-    ]
-
-    for folder in search_dirs:
-        if not os.path.isdir(folder):
-            continue
-        # Limit scan depth to avoid long traversal
-        for root, dirs, files in os.walk(folder):
-            rel = os.path.relpath(root, folder)
-            if rel.count(os.sep) > 2:
+    # 1. Scan D:\Media Library
+    if os.path.isdir(MEDIA_DIR):
+        for root, dirs, files in os.walk(MEDIA_DIR):
+            if any(p in root.split(os.sep) for p in ("cache", ".git", "venv", ".venv", "__pycache__")):
+                continue
+            rel = os.path.relpath(root, MEDIA_DIR)
+            if rel.count(os.sep) > 3:
                 dirs.clear()
                 continue
             for f in files:
-                if f.lower().endswith(extensions):
-                    full_path = os.path.abspath(os.path.join(root, f))
-                    if full_path not in seen and not f.startswith("."):
-                        seen.add(full_path)
-                        found.append(full_path)
-    return found
+                if f.lower().endswith(extensions) and not f.startswith("."):
+                    fp = os.path.abspath(os.path.join(root, f))
+                    if fp not in seen:
+                        seen.add(fp)
+                        media_movies.append(fp)
+
+    # 2. Scan local clips in assets/clips
+    clips_dir = os.path.join(ASSETS_DIR, "clips")
+    if os.path.isdir(clips_dir):
+        for root, dirs, files in os.walk(clips_dir):
+            for f in files:
+                if f.lower().endswith(extensions) and not f.startswith("."):
+                    fp = os.path.abspath(os.path.join(root, f))
+                    if fp not in seen:
+                        seen.add(fp)
+                        local_clips.append(fp)
+
+    return media_movies, local_clips
 
 
 def select_video_dialog(prompt_label: str = "Select a source video") -> str:
-    """Interactive video selector listing known clips or accepting custom path."""
-    videos = scan_available_videos()
-    print(f"{Colors.BOLD}{prompt_label}:{Colors.RESET}\n")
+    """Interactive video selector listing D:\\Media movies and local clips with search support."""
+    media_movies, local_clips = scan_available_videos()
+    all_videos = media_movies + local_clips
 
-    if videos:
-        print(f"  {Colors.YELLOW}Detected video assets:{Colors.RESET}")
-        for idx, vid in enumerate(videos[:15], 1):
-            size_mb = os.path.getsize(vid) / (1024 * 1024)
-            rel_name = os.path.relpath(vid, REPO_ROOT)
-            print(f"    [{Colors.GREEN}{idx}{Colors.RESET}] {rel_name} ({size_mb:.1f} MB)")
-        print()
-
-    print(f"    [{Colors.GREEN}C{Colors.RESET}] Enter custom file path (or drag & drop video)")
-    print(f"    [{Colors.RED}B{Colors.RESET}] Back to menu\n")
+    filter_query = ""
 
     while True:
+        clear_screen()
+        print(f"{Colors.CYAN}{Colors.BOLD}=" * 76)
+        print(f"  {prompt_label}")
+        print(f"  Connected Media Library: {MEDIA_DIR} ({len(media_movies)} movies detected)")
+        print(f"=" * 76 + f"{Colors.RESET}\n")
+
+        if filter_query:
+            print(f"  {Colors.YELLOW}Filter active: '{filter_query}' (Type 'all' to reset){Colors.RESET}\n")
+            displayed = [v for v in all_videos if filter_query.lower() in os.path.basename(v).lower()]
+        else:
+            displayed = all_videos
+
+        # Display Media Movies
+        disp_media = [v for v in displayed if v in media_movies]
+        if disp_media:
+            print(f"  {Colors.GREEN}{Colors.BOLD}🎬 D:\\Media Movies & Full Masters ({len(disp_media)}):{Colors.RESET}")
+            for idx, vid in enumerate(disp_media[:12], 1):
+                size_mb = os.path.getsize(vid) / (1024 * 1024)
+                size_str = f"{size_mb/1024:.2f} GB" if size_mb >= 1024 else f"{size_mb:.1f} MB"
+                rel_name = os.path.relpath(vid, MEDIA_DIR)
+                print(f"    [{Colors.GREEN}{idx}{Colors.RESET}] {rel_name} ({size_str})")
+            if len(disp_media) > 12 and not filter_query:
+                print(f"    {Colors.DIM}... and {len(disp_media) - 12} more (Type 'S <keyword>' to search){Colors.RESET}")
+            print()
+
+        # Display Local Clips
+        disp_clips = [v for v in displayed if v in local_clips]
+        if disp_clips:
+            offset = len(disp_media[:12]) if not filter_query else len(disp_media)
+            print(f"  {Colors.CYAN}{Colors.BOLD}✂️ Local Clips & Cut Scenes ({len(disp_clips)}):{Colors.RESET}")
+            for idx, vid in enumerate(disp_clips[:8], 1):
+                num = offset + idx
+                size_mb = os.path.getsize(vid) / (1024 * 1024)
+                rel_name = os.path.relpath(vid, REPO_ROOT)
+                print(f"    [{Colors.CYAN}{num}{Colors.RESET}] {rel_name} ({size_mb:.1f} MB)")
+            print()
+
+        flat_selectable = (disp_media[:12] if not filter_query else disp_media) + disp_clips[:8]
+
+        print(f"  [{Colors.YELLOW}S <name>{Colors.RESET}] Search / filter videos (e.g. 's iron' or 's django')")
+        print(f"  [{Colors.GREEN}C{Colors.RESET}] Enter custom file path (or drag & drop video)")
+        print(f"  [{Colors.RED}B{Colors.RESET}] Back to menu\n")
+
         raw_choice = input(f"{Colors.CYAN}Selection > {Colors.RESET}").strip()
         choice = raw_choice.lower()
+
         if choice in ("b", "back", "0"):
             return None
+        if choice == "all":
+            filter_query = ""
+            continue
+        if choice.startswith("s "):
+            filter_query = raw_choice[2:].strip()
+            continue
         if choice == "c":
             raw = input(f"\n{Colors.CYAN}Enter full path to video file (or drag & drop): {Colors.RESET}")
             path = clean_input_path(raw)
             if os.path.isfile(path):
                 return path
-            print(f"{Colors.RED}File not found: '{path}'{Colors.RESET}\n")
+            print(f"{Colors.RED}File not found: '{path}'{Colors.RESET}")
+            pause()
             continue
 
         if choice.isdigit():
             idx = int(choice)
-            if 1 <= idx <= len(videos[:15]):
-                return videos[idx - 1]
+            if 1 <= idx <= len(flat_selectable):
+                return flat_selectable[idx - 1]
 
-        # Maybe user directly dragged and dropped or pasted a file path
+        # Check if user typed movie keyword directly (e.g. 'iron', 'otto')
+        matching = [v for v in all_videos if choice in os.path.basename(v).lower()]
+        if len(matching) == 1:
+            return matching[0]
+        elif len(matching) > 1:
+            filter_query = raw_choice
+            continue
+
         direct_path = clean_input_path(raw_choice)
         if os.path.isfile(direct_path):
             return direct_path
 
-        print(f"{Colors.RED}Invalid option. Please select a number, 'C', or 'B' (or drag & drop video).{Colors.RESET}")
+        print(f"{Colors.RED}Invalid selection. Please enter a number, search keyword, or file path.{Colors.RESET}")
+        pause()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

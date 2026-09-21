@@ -293,14 +293,20 @@ def build_karaoke_ass(
     if not valid_words:
         return
 
-    # Chunk into 3-4 word phrases, breaking on sentence ends or max chunk limit
+    # Chunk into 3-4 word phrases, breaking on sentence ends, pause gaps, or max chunk limit
     chunks = []
     current_chunk = []
 
-    for w in valid_words:
+    for i, w in enumerate(valid_words):
         current_chunk.append(w)
         ends_sentence = any(w["word"].endswith(p) for p in (".", "!", "?"))
-        if len(current_chunk) >= max_chunk_words or (len(current_chunk) >= min_chunk_words and ends_sentence):
+        has_gap = False
+        if i + 1 < len(valid_words):
+            gap = valid_words[i + 1]["start"] - w["end"]
+            if gap > 0.5:  # Pause gap > 500ms breaks chunk so silence stays clean
+                has_gap = True
+
+        if len(current_chunk) >= max_chunk_words or (ends_sentence and len(current_chunk) >= 2) or has_gap:
             chunks.append(current_chunk)
             current_chunk = []
 
@@ -354,7 +360,7 @@ def build_karaoke_ass(
                 if idx + 1 < len(chunk):
                     w_end = max(w_start + 0.05, chunk[idx + 1]["start"])
                 else:
-                    w_end = max(w_start + 0.05, active_word["end"])
+                    w_end = max(w_start + 0.05, active_word["end"] + 0.15)
 
                 active_hl = hl_colors[idx % len(hl_colors)]
 

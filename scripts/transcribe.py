@@ -97,7 +97,6 @@ def transcribe_video(
     compute_type = "float16" if device_choice == "cuda" else "int8"
     print(f"Running on {device_choice.upper()} (compute_type={compute_type})...")
 
-    import os
     cpu_cores = os.cpu_count() or 4
     threads = min(cpu_cores, 8) if device_choice == "cpu" else 4
 

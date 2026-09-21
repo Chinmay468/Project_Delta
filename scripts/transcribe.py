@@ -100,8 +100,16 @@ def transcribe_video(
     model = WhisperModel(model_size, device=device_choice, compute_type=compute_type)
     segments_gen, info = model.transcribe(wav_path, word_timestamps=True, beam_size=5)
 
+    total_dur = round(info.duration, 2)
+    dur_min = int(total_dur // 60)
+    dur_sec = int(total_dur % 60)
+    print(f"Detected language: {info.language} (probability: {info.language_probability:.2f})")
+    print(f"Total audio duration: {dur_min}m {dur_sec}s ({total_dur:.1f}s). Transcribing in progress...")
+    sys.stdout.flush()
+
     segments_data = []
     full_text_parts = []
+    last_reported_time = 0.0
 
     for seg in segments_gen:
         full_text_parts.append(seg.text.strip())
@@ -122,6 +130,16 @@ def transcribe_video(
             "text": seg.text.strip(),
             "words": words_data,
         })
+
+        # Print progress every ~15 seconds of audio or when significant text is spoken
+        if seg.end - last_reported_time >= 15.0 or seg.id % 10 == 0:
+            pct = min(100.0, (seg.end / max(1.0, total_dur)) * 100.0)
+            cur_m = int(seg.end // 60)
+            cur_s = int(seg.end % 60)
+            snippet = seg.text.strip().replace("\n", " ")[:50]
+            print(f"  [{pct:5.1f}% | {cur_m:02d}m{cur_s:02d}s / {dur_min:02d}m{dur_sec:02d}s] \"{snippet}\"")
+            sys.stdout.flush()
+            last_reported_time = seg.end
 
     result = {
         "source": os.path.abspath(video_path),

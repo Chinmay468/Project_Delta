@@ -505,13 +505,85 @@ def menu_modular_tools():
             # Detect Clips
             vid = select_video_dialog("Select Video to Detect Viral Moments")
             if vid:
+                info = get_video_info(vid)
+                dur = info.get("duration", 0)
                 n_input = input(f"{Colors.CYAN}Top N clips [default: 3]: {Colors.RESET}").strip()
                 top_n = int(n_input) if n_input.isdigit() else 3
+
+                win_start = 0.0
+                win_dur = None
+
+                # Check if video is a full-length movie
+                if dur > 900:  # > 15 minutes
+                    print(f"\n{Colors.YELLOW}{Colors.BOLD}Notice:{Colors.RESET} Selected video is {dur/60:.1f} minutes long ({dur:.0f}s).")
+                    print("Transcribing a full 2–3 hour movie on CPU typically takes 30–60+ minutes.")
+                    print(f"  [{Colors.GREEN}1{Colors.RESET}] Fast-Scan: First 20 minutes (Instant hook detection in ~30s)")
+                    print(f"  [{Colors.CYAN}2{Colors.RESET}] Custom Scene Window (Specify start timestamp & scan duration)")
+                    print(f"  [{Colors.MAGENTA}3{Colors.RESET}] Full Movie Scan (Process all {dur/60:.0f} minutes of audio)")
+                    print(f"  [{Colors.RED}0{Colors.RESET}] Cancel\n")
+
+                    scan_opt = input(f"{Colors.CYAN}Select Scanning Mode [default: 1] > {Colors.RESET}").strip()
+                    if scan_opt in ("0", "b", "back"):
+                        continue
+                    elif scan_opt == "2":
+                        st_raw = input(f"{Colors.CYAN}Window start timestamp (e.g. 01:10:00 or 70:00) [default: 0]: {Colors.RESET}").strip()
+                        win_start = parse_timestamp(st_raw)
+                        win_dur_raw = input(f"{Colors.CYAN}Window duration in minutes [default: 15]: {Colors.RESET}").strip()
+                        win_dur = float(win_dur_raw) * 60.0 if win_dur_raw else 900.0
+                    elif scan_opt == "3":
+                        win_start = 0.0
+                        win_dur = None
+                    else:
+                        win_start = 0.0
+                        win_dur = 1200.0  # 20 mins
+
                 print(f"\n{Colors.GREEN}Analyzing viral moments...{Colors.RESET}")
-                clips = detect_clips(vid, top_n=top_n, min_duration=15.0, max_duration=55.0)
+                if win_dur is not None:
+                    base = os.path.splitext(os.path.basename(vid))[0]
+                    slug = slugify(base)
+                    temp_wav = os.path.join(ASSETS_DIR, "audio", f"{slug}_win_{int(win_start)}s.wav")
+                    ffmpeg_bin = _find_tool("ffmpeg")
+                    print(f"Extracting {win_dur/60:.1f} min audio slice from {format_timestamp(win_start)}...")
+                    cmd = [
+                        ffmpeg_bin, "-y",
+                        "-ss", str(win_start),
+                        "-t", str(win_dur),
+                        "-i", os.path.abspath(vid),
+                        "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1",
+                        temp_wav
+                    ]
+                    subprocess.run(cmd, check=True, capture_output=True)
+                    from faster_whisper import WhisperModel
+                    print(f"Scanning audio window with Whisper...")
+                    model = WhisperModel("base", device="cpu", compute_type="int8")
+                    segments_gen, _ = model.transcribe(temp_wav, word_timestamps=True)
+                    segments_list = []
+                    for seg in segments_gen:
+                        words = [{"word": w.word, "start": w.start, "end": w.end} for w in (seg.words or [])]
+                        segments_list.append({
+                            "id": seg.id,
+                            "start": seg.start,
+                            "end": seg.end,
+                            "text": seg.text.strip(),
+                            "words": words,
+                        })
+                    win_transcript = {"segments": segments_list}
+                    raw_clips = find_top_n_clips(win_transcript, temp_wav, top_n=top_n, min_duration=15.0, max_duration=55.0)
+                    clips = []
+                    for c in raw_clips:
+                        c["start"] = round(c["start"] + win_start, 2)
+                        c["end"] = round(c["end"] + win_start, 2)
+                        clips.append(c)
+                    try:
+                        os.remove(temp_wav)
+                    except OSError:
+                        pass
+                else:
+                    clips = detect_clips(vid, top_n=top_n, min_duration=15.0, max_duration=55.0)
+
                 print(f"\n--- Found {len(clips)} Top Moments ---")
                 for c in clips:
-                    print(f"  [Rank {c['rank']}] Score: {c['score']} | {c['start']}s -> {c['end']}s ({c['duration']}s)")
+                    print(f"  [Rank {c['rank']}] Score: {c['score']} | {format_timestamp(c['start'])} ({c['start']}s) -> {format_timestamp(c['end'])} ({c['end']}s) [Duration: {c['duration']}s]")
                     print(f"    Hook: \"{c.get('hook_title') or c.get('hook')}\"")
                 pause()
 

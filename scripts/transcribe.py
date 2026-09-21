@@ -97,8 +97,18 @@ def transcribe_video(
     compute_type = "float16" if device_choice == "cuda" else "int8"
     print(f"Running on {device_choice.upper()} (compute_type={compute_type})...")
 
-    model = WhisperModel(model_size, device=device_choice, compute_type=compute_type)
-    segments_gen, info = model.transcribe(wav_path, word_timestamps=True, beam_size=5)
+    import os
+    cpu_cores = os.cpu_count() or 4
+    threads = min(cpu_cores, 8) if device_choice == "cpu" else 4
+
+    model = WhisperModel(model_size, device=device_choice, compute_type=compute_type, cpu_threads=threads)
+    segments_gen, info = model.transcribe(
+        wav_path,
+        word_timestamps=True,
+        beam_size=1,
+        vad_filter=True,
+        vad_parameters=dict(min_silence_duration_ms=400),
+    )
 
     total_dur = round(info.duration, 2)
     dur_min = int(total_dur // 60)

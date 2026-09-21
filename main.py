@@ -588,15 +588,34 @@ def menu_modular_tools():
                 pause()
 
         elif sub_choice == "3":
-            # Face Crop
+            # Face Crop / Framing
             vid = select_video_dialog("Select Video for Vertical Crop")
             if vid:
-                s = float(input(f"{Colors.CYAN}Start timestamp in seconds: {Colors.RESET}").strip() or "0")
-                d = float(input(f"{Colors.CYAN}Duration in seconds: {Colors.RESET}").strip() or "20")
+                info = get_video_info(vid)
+                vw = info.get("width", 1920)
+                vh = info.get("height", 1080)
+                aspect = vw / max(vh, 1)
+
+                print(f"\nVideo resolution: {vw}x{vh} (Aspect ratio: {aspect:.2f}:1)")
+                if aspect > 2.0:
+                    print(f"{Colors.YELLOW}Notice: CinemaScope widescreen detected ({aspect:.2f}:1).{Colors.RESET}")
+                    print(f"Direct 9:16 crop will zoom in ~2.4x. Canvas Fit preserves full widescreen arms & landscape.")
+
+                print("\nSelect Framing Mode:")
+                print(f"  [{Colors.GREEN}1{Colors.RESET}] Smart 9:16 Reframe (Full vertical bleed with face tracking)")
+                print(f"  [{Colors.CYAN}2{Colors.RESET}] Cinematic Canvas Fit (Full widescreen + blurred ambient background)")
+
+                mode_opt = input(f"{Colors.CYAN}Framing Mode [default: 1] > {Colors.RESET}").strip()
+                crop_mode = "canvas_blur" if mode_opt == "2" else "reframe"
+
+                s = float(input(f"{Colors.CYAN}Start timestamp in seconds [default: 0]: {Colors.RESET}").strip() or "0")
+                d = float(input(f"{Colors.CYAN}Duration in seconds [default: 30]: {Colors.RESET}").strip() or "30")
                 base = os.path.splitext(os.path.basename(vid))[0]
-                out = os.path.join(ASSETS_DIR, "clips", f"{base}_cropped_9x16.mp4")
-                print(f"\n{Colors.GREEN}Cropping to 9:16 vertical using YuNet...{Colors.RESET}")
-                res = crop_to_vertical(vid, s, d, out)
+                suffix = "canvas_9x16" if crop_mode == "canvas_blur" else "cropped_9x16"
+                out = os.path.join(ASSETS_DIR, "clips", f"{base}_{suffix}.mp4")
+
+                print(f"\n{Colors.GREEN}Rendering 9:16 vertical ({crop_mode})...{Colors.RESET}")
+                res = crop_to_vertical(vid, s, d, out, mode=crop_mode)
                 print(f"{Colors.GREEN}Saved to: {res}{Colors.RESET}")
                 pause()
 
@@ -609,7 +628,6 @@ def menu_modular_tools():
                 slug = slugify(base)
                 default_json = os.path.join(ASSETS_DIR, "cache", f"{slug}_transcript.json")
                 if not os.path.isfile(default_json):
-                    # check if base clip exists
                     json_cand = [f for f in os.listdir(os.path.join(ASSETS_DIR, "cache")) if f.endswith(".json")]
                     print(f"\nAvailable transcripts in cache:")
                     for idx, jf in enumerate(json_cand, 1):
@@ -623,9 +641,16 @@ def menu_modular_tools():
                     t_path = default_json
 
                 if os.path.isfile(t_path):
-                    out_path = os.path.join(ASSETS_DIR, "output", f"{base}_graded_short.mp4")
-                    print(f"\n{Colors.GREEN}Burning karaoke subtitles & applying cinematic grade...{Colors.RESET}")
-                    res = burn_subtitles_and_grade(vid, t_path, out_path)
+                    print("\nSelect Subtitle Style:")
+                    print(f"  [{Colors.GREEN}1{Colors.RESET}] Viral Shorts Standard (ALL-CAPS, Impact font, Neon Yellow/Green, 2-line stack) [Recommended]")
+                    print(f"  [{Colors.CYAN}2{Colors.RESET}] Classic Minimal (Arial, yellow highlight, single line)")
+
+                    style_opt = input(f"{Colors.CYAN}Subtitle Style [default: 1] > {Colors.RESET}").strip()
+                    sub_style = "classic" if style_opt == "2" else "viral_shorts"
+
+                    out_path = os.path.join(ASSETS_DIR, "output", f"{base}_viral_short.mp4")
+                    print(f"\n{Colors.GREEN}Burning kinetic subtitles ({sub_style}) & applying cinematic grade...{Colors.RESET}")
+                    res = burn_subtitles_and_grade(vid, t_path, out_path, style=sub_style)
                     print(f"{Colors.GREEN}Saved short to: {res}{Colors.RESET}")
                 else:
                     print(f"{Colors.RED}Transcript JSON not found.{Colors.RESET}")

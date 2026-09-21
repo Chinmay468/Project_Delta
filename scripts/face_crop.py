@@ -16,10 +16,10 @@ import numpy as np
 # ── Tool resolver ────────────────────────────────────────────────────────────
 
 try:
-    from build_video import _find_tool
+    from build_video import _find_tool, _get_video_encoder_cmd
 except ImportError:
     sys.path.insert(0, os.path.dirname(__file__))
-    from build_video import _find_tool
+    from build_video import _find_tool, _get_video_encoder_cmd
 
 
 # ── Face Detector Hierarchy with Automated Fallback ───────────────────────────
@@ -261,9 +261,14 @@ def auto_crop_clip(
     out_path: str,
     sample_interval: float = 0.3,
     sample_fps: float = None,
+    mode: str = "reframe",
+    use_gpu: bool = True,
 ) -> str:
     """
-    Extract a clip and crop into 9:16 vertical (1080x1920) centered on speaker.
+    Extract a clip and render into 9:16 vertical (1080x1920).
+    Modes:
+      - 'reframe': Intelligent face-tracking crop (9:16 bleed centered on speaker)
+      - 'canvas_blur': Cinematic Canvas Fit (full widescreen video centered with blurred ambient background)
     """
     cap = cv2.VideoCapture(video_path)
     src_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -273,51 +278,77 @@ def auto_crop_clip(
     if src_w <= 0 or src_h <= 0:
         raise ValueError(f"Could not retrieve dimensions of video: '{video_path}'")
 
-    # Target 9:16 width inside input height
-    crop_w = int(src_h * (9.0 / 16.0))
-    if crop_w > src_w:
-        crop_w = src_w
-
-    # Detect optimal focal center X
-    print(f"Analyzing focal center for {duration}s clip starting at {start}s...")
-    focal_x = analyze_focal_center_x(
-        video_path,
-        start,
-        duration,
-        sample_interval=sample_interval,
-        sample_fps=sample_fps,
-    )
-
-    # Compute crop left coordinate
-    crop_x = int((focal_x * src_w) - (crop_w / 2.0))
-    crop_x = max(0, min(crop_x, src_w - crop_w))
-
-    print(f"Calculated 9:16 crop: {crop_w}x{src_h} at X={crop_x} (Focal center: {focal_x:.2f})")
-
+    aspect_ratio = src_w / float(src_h)
     out_abs = os.path.abspath(out_path)
     os.makedirs(os.path.dirname(out_abs), exist_ok=True)
-
     ffmpeg_bin = _find_tool("ffmpeg")
 
-    vf = f"crop=ih*(9/16):ih:{crop_x}:0,scale=1080:1920"
+    if mode == "canvas_blur":
+        print(f"[face_crop] Applying Cinematic Canvas Fit (widescreen with blurred ambient background)...")
+        filter_complex = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+            "boxblur=25:5,eq=brightness=-0.15:saturation=1.2[bg];"
+            "[0:v]scale=1080:-2[fg];"
+            "[bg][fg]overlay=(W-w)/2:(H-h)/2[v]"
+        )
+        cmd = [
+            ffmpeg_bin, "-y",
+            "-ss", str(start),
+            "-t", str(duration),
+            "-i", os.path.abspath(video_path),
+            "-filter_complex", filter_complex,
+            "-map", "[v]",
+            "-map", "0:a?",
+        ]
+        cmd.extend(_get_video_encoder_cmd(use_gpu=use_gpu))
+        cmd.extend([
+            "-c:a", "aac",
+            "-b:a", "192k",
+            out_abs,
+        ])
+    else:
+        # Reframe mode (face tracking)
+        crop_w = int(src_h * (9.0 / 16.0))
+        if crop_w > src_w:
+            crop_w = src_w
 
-    cmd = [
-        ffmpeg_bin, "-y",
-        "-ss", str(start),
-        "-t", str(duration),
-        "-i", os.path.abspath(video_path),
-        "-vf", vf,
-        "-c:v", "libx264",
-        "-crf", "18",
-        "-preset", "fast",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        out_abs,
-    ]
+        if aspect_ratio > 2.0:
+            print(f"[face_crop] CinemaScope {aspect_ratio:.2f}:1 detected ({src_w}x{src_h}). Cropping to {crop_w}x{src_h}.")
+            print(f"            Tip: Select mode 'canvas_blur' to preserve full widescreen landscape/arms.")
 
-    subprocess.run(cmd, check=True, capture_output=True)
-    print(f"Saved face-centered vertical clip to: {out_abs}")
+        print(f"Analyzing focal center for {duration}s clip starting at {start}s...")
+        focal_x = analyze_focal_center_x(
+            video_path,
+            start,
+            duration,
+            sample_interval=sample_interval,
+            sample_fps=sample_fps,
+        )
+
+        # Compute crop left coordinate
+        crop_x = int((focal_x * src_w) - (crop_w / 2.0))
+        crop_x = max(0, min(crop_x, src_w - crop_w))
+
+        print(f"Calculated 9:16 crop: {crop_w}x{src_h} at X={crop_x} (Focal center: {focal_x:.2f})")
+
+        vf = f"crop=ih*(9/16):ih:{crop_x}:0,scale=1080:1920"
+
+        cmd = [
+            ffmpeg_bin, "-y",
+            "-ss", str(start),
+            "-t", str(duration),
+            "-i", os.path.abspath(video_path),
+            "-vf", vf,
+        ]
+        cmd.extend(_get_video_encoder_cmd(use_gpu=use_gpu))
+        cmd.extend([
+            "-c:a", "aac",
+            "-b:a", "192k",
+            out_abs,
+        ])
+
+    subprocess.run(cmd, check=True)
+    print(f"Saved vertical clip ({mode}) to: {out_abs}")
     return out_abs
 
 
@@ -327,7 +358,7 @@ crop_to_vertical = auto_crop_clip
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Face-tracking auto-cropper for 9:16 vertical Shorts."
+        description="Face-tracking auto-cropper and cinematic reframer for 9:16 vertical Shorts."
     )
     parser.add_argument("video", help="Path to source video file")
     parser.add_argument("-s", "--start", type=float, required=True, help="Start timestamp in seconds")
@@ -335,6 +366,9 @@ def main():
     parser.add_argument("-e", "--end", type=float, help="End timestamp in seconds")
     parser.add_argument("-o", "--output", help="Output destination path (.mp4)")
     parser.add_argument("--interval", type=float, default=0.3, help="Sampling interval in seconds (default: 0.3s)")
+    parser.add_argument("-m", "--mode", choices=["reframe", "canvas_blur"], default="reframe",
+                        help="Framing mode: 'reframe' (speaker tracking 9:16 crop) or 'canvas_blur' (cinematic widescreen with blurred ambient background)")
+    parser.add_argument("--no-gpu", dest="use_gpu", action="store_false", help="Disable GPU encoding acceleration")
     args = parser.parse_args()
 
     if args.duration is not None:
@@ -362,6 +396,8 @@ def main():
             duration=duration,
             out_path=out_path,
             sample_interval=args.interval,
+            mode=args.mode,
+            use_gpu=args.use_gpu,
         )
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)

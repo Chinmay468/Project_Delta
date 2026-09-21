@@ -229,20 +229,47 @@ def load_words_from_transcript(transcript_source) -> list:
     return words
 
 
+# ── Style Presets for Karaoke Subtitles ────────────────────────────────────────
+
+SUBTITLE_STYLES = {
+    "viral_shorts": {
+        "font": "Impact",
+        "fontsize": 86,
+        "outline": 4.5,
+        "shadow": 2.0,
+        "margin_v": 320,  # Center chest / lower torso placement above Shorts UI
+        "uppercase": True,
+        "wrap_lines": True,
+        "highlight_colors": ["&H0044FF00&", "&H0000E6FF&"],  # Neon Green, Neon Yellow
+        "base_color": "&H00FFFFFF&",
+    },
+    "classic": {
+        "font": "Arial",
+        "fontsize": 80,
+        "outline": 3.0,
+        "shadow": 1.0,
+        "margin_v": 240,  # Bottom safe margin
+        "uppercase": False,
+        "wrap_lines": False,
+        "highlight_colors": ["&H0000FFFF&"],  # Classic yellow
+        "base_color": "&H00FFFFFF&",
+    },
+}
+
+
 def build_karaoke_ass(
     words: list,
     out_ass_path: str,
     min_chunk_words: int = 3,
     max_chunk_words: int = 4,
+    style: str = "viral_shorts",
 ) -> None:
     """
-    Generate kinetic ASS subtitles with active word-by-word yellow karaoke highlighting.
-    words: list of dicts with keys 'word', 'start', 'end' (or transcript JSON path).
-    - Chunks word streams into 3-4 words per line.
-    - Font size: FontSize=80 (~8% of 1920 vertical height).
-    - Base color: fully opaque white (&H00FFFFFF&).
-    - Highlight color: vibrant yellow (&H00FFFF&).
-    - Safe margin: MarginV=240 (bottom safe margin avoiding Shorts UI).
+    Generate kinetic ASS subtitles with active word-by-word highlighting.
+    Supports styles:
+      - 'viral_shorts': ALL-CAPS, Impact bold font, 2-line stacked wrapping,
+                        dual neon green/yellow highlights, MarginV=320.
+      - 'classic': Arial font, single-line, yellow highlight, MarginV=240.
     """
     if isinstance(words, (str, dict)):
         words = load_words_from_transcript(words)
@@ -250,13 +277,15 @@ def build_karaoke_ass(
     if not words:
         return
 
+    preset = SUBTITLE_STYLES.get(style, SUBTITLE_STYLES["viral_shorts"])
+
     # Clean words and filter valid timestamps
     valid_words = []
     for w in words:
         txt = w.get("word", "").strip()
         if txt and "start" in w and "end" in w:
             valid_words.append({
-                "word": txt,
+                "word": txt.upper() if preset["uppercase"] else txt,
                 "start": max(0.0, float(w["start"])),
                 "end": max(float(w["end"]), float(w["start"]) + 0.05),
             })
@@ -278,6 +307,14 @@ def build_karaoke_ass(
     if current_chunk:
         chunks.append(current_chunk)
 
+    font_name = preset["font"]
+    font_size = preset["fontsize"]
+    outline = preset["outline"]
+    shadow = preset["shadow"]
+    margin_v = preset["margin_v"]
+    base_color = preset["base_color"]
+    hl_colors = preset["highlight_colors"]
+
     header = (
         "[Script Info]\n"
         "ScriptType: v4.00+\n"
@@ -290,8 +327,8 @@ def build_karaoke_ass(
         "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
         "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding\n"
-        "Style: Default,Arial,80,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,"
-        "-1,0,0,0,100,100,0,0,1,3,1,2,40,40,240,1\n"
+        f"Style: Default,{font_name},{font_size},{base_color},&H000000FF,&H00000000,&H00000000,"
+        f"-1,0,0,0,100,100,0,0,1,{outline},{shadow},2,40,40,{margin_v},1\n"
         "\n"
         "[Events]\n"
         "Format: Layer, Start, End, Style, Name, "
@@ -302,25 +339,36 @@ def build_karaoke_ass(
         f.write(header)
 
         for chunk in chunks:
+            # Determine line-break index if wrapping enabled
+            n = len(chunk)
+            break_idx = -1
+            if preset["wrap_lines"]:
+                if n >= 4:
+                    break_idx = 2
+                elif n == 3 and sum(len(w["word"]) for w in chunk) > 13:
+                    break_idx = 2
+
             # For each word in the chunk, generate an active highlight event
             for idx, active_word in enumerate(chunk):
                 w_start = active_word["start"]
-                # Extend active highlight until the next word starts to prevent flickering
                 if idx + 1 < len(chunk):
                     w_end = max(w_start + 0.05, chunk[idx + 1]["start"])
                 else:
                     w_end = max(w_start + 0.05, active_word["end"])
 
-                # Build line where active_word is yellow (&H00FFFF&) and others are white (&H00FFFFFF&)
+                active_hl = hl_colors[idx % len(hl_colors)]
+
                 line_parts = []
                 for j, w in enumerate(chunk):
+                    if j == break_idx:
+                        line_parts.append(r"\N")
                     w_text = w["word"]
                     if j == idx:
-                        line_parts.append(f"{{\\c{_HIGHLIGHT}}}{w_text}{{\\c{_BASE}}}")
+                        line_parts.append(f"{{\\c{active_hl}}}{w_text}{{\\c{base_color}}}")
                     else:
                         line_parts.append(w_text)
 
-                line_text = " ".join(line_parts)
+                line_text = " ".join(line_parts).replace(r" \N ", r"\N").replace(r" \N", r"\N").replace(r"\N ", r"\N")
                 f.write(
                     f"Dialogue: 0,{_ass_time(w_start)},{_ass_time(w_end)},"
                     f"Default,,0,0,0,,{line_text}\n"
@@ -331,17 +379,36 @@ def build_karaoke_ass(
 build_kinetic_ass = build_karaoke_ass
 
 
+def _get_video_encoder_cmd(use_gpu: bool = True) -> list:
+    """Return hardware-accelerated or CPU encoder parameters."""
+    if use_gpu and sys.platform == "win32":
+        try:
+            # Test fast probe with h264_mf
+            test_cmd = [
+                _find_tool("ffmpeg"), "-y", "-f", "lavfi",
+                "-i", "color=c=black:s=64x64:d=0.1",
+                "-c:v", "h264_mf", "-f", "null", "-"
+            ]
+            subprocess.run(test_cmd, capture_output=True, check=True)
+            return ["-c:v", "h264_mf", "-b:v", "6500k"]
+        except Exception:
+            pass
+    return ["-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p"]
+
+
 def burn_subtitles_and_grade(
     video_path: str,
     words_data: list,
     out_path: str = None,
     start_time: float = None,
     duration: float = None,
+    style: str = "viral_shorts",
+    use_gpu: bool = True,
 ) -> str:
     """
     Burn kinetic subtitles and cinematic color grading into a 9:16 vertical clip.
     Applies unified filtergraph:
-      -vf "eq=contrast=1.12:saturation=1.15:brightness=-0.02,subtitles=<ass_filename>"
+      -vf "eq=contrast=1.12:saturation=1.18:brightness=-0.01,unsharp=5:5:0.8:5:5:0.0,subtitles=<ass_filename>"
     Executed inside the subtitle directory to avoid Windows drive-letter escaping issues.
     """
     if isinstance(words_data, (str, dict)):
@@ -374,7 +441,7 @@ def burn_subtitles_and_grade(
     os.makedirs(os.path.dirname(out_abs), exist_ok=True)
 
     ass_path = out_abs.replace(".mp4", ".ass")
-    build_karaoke_ass(words_data, ass_path)
+    build_karaoke_ass(words_data, ass_path, style=style)
 
     ass_dir = os.path.dirname(ass_path)
     ass_name = os.path.basename(ass_path)
@@ -393,13 +460,15 @@ def burn_subtitles_and_grade(
     except Exception:
         w, h = 1080, 1920
 
+    grade_filter = "eq=contrast=1.12:saturation=1.18:brightness=-0.01,unsharp=5:5:0.8:5:5:0.0"
+
     if w == 1080 and h == 1920:
-        vf = f"eq=contrast=1.12:saturation=1.15:brightness=-0.02,subtitles={ass_name}"
+        vf = f"{grade_filter},subtitles={ass_name}"
     else:
         vf = (
             f"scale=1080:1920:force_original_aspect_ratio=increase,"
             f"crop=1080:1920,"
-            f"eq=contrast=1.12:saturation=1.15:brightness=-0.02,"
+            f"{grade_filter},"
             f"subtitles={ass_name}"
         )
 
@@ -410,19 +479,16 @@ def burn_subtitles_and_grade(
     if duration is not None:
         cmd.extend(["-t", str(duration)])
 
+    cmd.extend(["-vf", vf])
+    cmd.extend(_get_video_encoder_cmd(use_gpu=use_gpu))
     cmd.extend([
-        "-vf", vf,
-        "-c:v", "libx264",
-        "-crf", "18",
-        "-preset", "fast",
-        "-pix_fmt", "yuv420p",
         "-c:a", "aac",
         "-b:a", "192k",
         out_abs,
     ])
 
     subprocess.run(cmd, check=True, cwd=ass_dir)
-    print(f"Burned subtitles and applied cinematic grade to: {out_abs}")
+    print(f"Burned kinetic subtitles ({style}) and applied cinematic grade to: {out_abs}")
     return out_abs
 
 

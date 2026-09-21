@@ -76,23 +76,31 @@ def clean_input_path(raw: str) -> str:
 
 
 def scan_available_videos() -> list:
-    """Scan assets/clips, assets/output, and assets for sample video files."""
+    """Scan assets/clips, D:\\Media\\movies, assets, and assets/output for video files."""
     extensions = (".mp4", ".mkv", ".mov", ".avi")
     found = []
     seen = set()
 
-    for folder in [
+    search_dirs = [
         os.path.join(ASSETS_DIR, "clips"),
+        r"D:\Media\movies",
         ASSETS_DIR,
         os.path.join(ASSETS_DIR, "output"),
-    ]:
+    ]
+
+    for folder in search_dirs:
         if not os.path.isdir(folder):
             continue
-        for root, _, files in os.walk(folder):
+        # Limit scan depth to avoid long traversal
+        for root, dirs, files in os.walk(folder):
+            rel = os.path.relpath(root, folder)
+            if rel.count(os.sep) > 2:
+                dirs.clear()
+                continue
             for f in files:
                 if f.lower().endswith(extensions):
                     full_path = os.path.abspath(os.path.join(root, f))
-                    if full_path not in seen:
+                    if full_path not in seen and not f.startswith("."):
                         seen.add(full_path)
                         found.append(full_path)
     return found
@@ -105,7 +113,7 @@ def select_video_dialog(prompt_label: str = "Select a source video") -> str:
 
     if videos:
         print(f"  {Colors.YELLOW}Detected video assets:{Colors.RESET}")
-        for idx, vid in enumerate(videos[:8], 1):
+        for idx, vid in enumerate(videos[:15], 1):
             size_mb = os.path.getsize(vid) / (1024 * 1024)
             rel_name = os.path.relpath(vid, REPO_ROOT)
             print(f"    [{Colors.GREEN}{idx}{Colors.RESET}] {rel_name} ({size_mb:.1f} MB)")
@@ -128,7 +136,7 @@ def select_video_dialog(prompt_label: str = "Select a source video") -> str:
 
         if choice.isdigit():
             idx = int(choice)
-            if 1 <= idx <= len(videos[:8]):
+            if 1 <= idx <= len(videos[:15]):
                 return videos[idx - 1]
 
         # Maybe user directly dragged and dropped a file path

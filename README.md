@@ -42,7 +42,24 @@ Copy `config/.env.example` to `config/.env`:
 
 ## Quick Start & Usage
 
-### 1. Local AI Clip Cutter (Auto-Detect Top Viral Clips)
+### 🚀 Interactive Studio CLI (Recommended)
+Run the entire suite through the interactive menu-driven interface without needing to memorize flags:
+```powershell
+python main.py
+```
+From the interactive menu, you can:
+- Auto-extract top viral moments from any video
+- Extract custom scene timestamps with face-tracking
+- Run movie mystery breakdown generation
+- Test and access modular utilities (transcription, scoring, face-cropping, karaoke burn)
+- Browse and open rendered Shorts in Windows player / explorer
+- Run a system health check on FFmpeg, YuNet ONNX, and API keys
+
+---
+
+### CLI Direct Commands
+
+#### 1. Local AI Clip Cutter (Auto-Detect Top Viral Clips)
 Automatically transcribes, scores, face-crops, and captions the top viral moments from a full-length movie:
 ```powershell
 python scripts/run_ai_cutter.py "D:\Media\movies\The Usual Suspects.mkv" --top 3

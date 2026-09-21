@@ -31,6 +31,7 @@ from build_video import _find_tool, burn_subtitles_and_grade, build_karaoke_ass
 from transcribe import transcribe_video, slugify, extract_audio
 from detect_clips import find_top_n_clips, detect_clips
 from face_crop import crop_to_vertical, get_face_detector
+from cut_clip import cut_clip
 
 # ANSI Color formatting (supported by modern Windows PowerShell / CMD)
 class Colors:
@@ -73,6 +74,60 @@ def clean_input_path(raw: str) -> str:
         return ""
     p = raw.strip().strip("'\"").strip()
     return os.path.abspath(os.path.expanduser(p))
+
+
+def parse_timestamp(raw: str) -> float:
+    """Parse various timestamp representations (HH:MM:SS, MM:SS, or seconds) into float seconds."""
+    raw = (raw or "").strip()
+    if not raw:
+        return 0.0
+    if ":" in raw:
+        parts = [float(p) for p in raw.split(":")]
+        if len(parts) == 3:
+            return parts[0] * 3600 + parts[1] * 60 + parts[2]
+        elif len(parts) == 2:
+            return parts[0] * 60 + parts[1]
+    try:
+        return float(raw)
+    except ValueError:
+        return 0.0
+
+
+def format_timestamp(sec: float) -> str:
+    """Format seconds into HH:MM:SS.ss string."""
+    sec = max(0.0, float(sec))
+    h = int(sec // 3600)
+    m = int((sec % 3600) // 60)
+    s = sec % 60
+    if h > 0:
+        return f"{h:02d}:{m:02d}:{s:05.2f}"
+    return f"{m:02d}:{s:05.2f}"
+
+
+def get_video_info(video_path: str) -> dict:
+    """Retrieve video dimensions and duration via ffprobe."""
+    try:
+        cmd = [
+            _find_tool("ffprobe"), "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height,duration",
+            "-show_entries", "format=duration",
+            "-of", "json",
+            os.path.abspath(video_path),
+        ]
+        out = subprocess.check_output(cmd, text=True)
+        data = json.loads(out)
+        streams = data.get("streams", [])
+        v = streams[0] if streams else {}
+        fmt = data.get("format", {})
+        dur = float(v.get("duration") or fmt.get("duration") or 0.0)
+        return {
+            "width": int(v.get("width", 0)),
+            "height": int(v.get("height", 0)),
+            "duration": dur,
+        }
+    except Exception:
+        return {"width": 0, "height": 0, "duration": 0.0}
 
 
 def scan_available_videos() -> list:
@@ -123,7 +178,8 @@ def select_video_dialog(prompt_label: str = "Select a source video") -> str:
     print(f"    [{Colors.RED}B{Colors.RESET}] Back to menu\n")
 
     while True:
-        choice = input(f"{Colors.CYAN}Selection > {Colors.RESET}").strip().lower()
+        raw_choice = input(f"{Colors.CYAN}Selection > {Colors.RESET}").strip()
+        choice = raw_choice.lower()
         if choice in ("b", "back", "0"):
             return None
         if choice == "c":
@@ -139,12 +195,12 @@ def select_video_dialog(prompt_label: str = "Select a source video") -> str:
             if 1 <= idx <= len(videos[:15]):
                 return videos[idx - 1]
 
-        # Maybe user directly dragged and dropped a file path
-        direct_path = clean_input_path(choice)
+        # Maybe user directly dragged and dropped or pasted a file path
+        direct_path = clean_input_path(raw_choice)
         if os.path.isfile(direct_path):
             return direct_path
 
-        print(f"{Colors.RED}Invalid option. Please select a number, 'C', or 'B'.{Colors.RESET}")
+        print(f"{Colors.RED}Invalid option. Please select a number, 'C', or 'B' (or drag & drop video).{Colors.RESET}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -218,63 +274,158 @@ def menu_auto_clip_cutter():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Feature 2: Manual Scene Extraction & Short Builder
+# Feature 2: Video Clip Cutter & Scene Extraction Studio
 # ─────────────────────────────────────────────────────────────────────────────
 
-def menu_manual_cutter():
-    print_header("2. MANUAL SCENE EXTRACTION & SHORT BUILDER")
-    print(f"Extracts a specific timestamp window, applies vertical face-tracking, and burns captions.\n")
+def menu_cut_video_clips():
+    print_header("2. CUT VIDEO CLIPS (FAST TRIM / 9:16 VERTICAL / BATCH)")
+    print("Extract scenes from any video file with high-speed stream copy, 9:16 vertical reframe, or batch mode.\n")
 
-    video_path = select_video_dialog("Select Video Source")
+    video_path = select_video_dialog("Select or Drag & Drop Video to Cut")
     if not video_path:
         return
 
-    print(f"\n{Colors.BOLD}Configuring Manual Clip for:{Colors.RESET} {os.path.basename(video_path)}")
+    base_name = os.path.splitext(os.path.basename(video_path))[0]
+    slug = slugify(base_name)
+    info = get_video_info(video_path)
+    dur_str = format_timestamp(info["duration"]) if info["duration"] > 0 else "Unknown"
+    res_str = f"{info['width']}x{info['height']}" if info['width'] > 0 else "Unknown"
 
-    # Start timestamp
-    start_raw = input(f"{Colors.CYAN}Start timestamp (e.g. 01:41:30 or 15.5): {Colors.RESET}").strip()
-    if not start_raw:
-        print(f"{Colors.RED}Start time is required.{Colors.RESET}")
+    print(f"\n{Colors.BOLD}Selected Video:{Colors.RESET} {Colors.CYAN}{os.path.basename(video_path)}{Colors.RESET}")
+    print(f"  Resolution: {res_str} | Total Duration: {dur_str} ({info['duration']:.1f}s)\n")
+
+    print(f"{Colors.BOLD}Choose Cutting Mode:{Colors.RESET}")
+    print(f"  [{Colors.GREEN}1{Colors.RESET}] Fast Lossless Cut (Instant stream-copy, original aspect ratio, zero re-encoding)")
+    print(f"  [{Colors.CYAN}2{Colors.RESET}] AI Vertical 9:16 Subject Reframe (YuNet face-tracking speaker framing)")
+    print(f"  [{Colors.YELLOW}3{Colors.RESET}] Standard 9:16 Center Crop (Fixed 1080x1920 center-cut)")
+    print(f"  [{Colors.MAGENTA}4{Colors.RESET}] Full AI Viral Short (YuNet Crop + Whisper Karaoke Subtitles + Color Grade)")
+    print(f"  [{Colors.BLUE}5{Colors.RESET}] Batch Multi-Clip Extractor (Extract multiple scenes from this video at once)")
+    print(f"  [{Colors.RED}0{Colors.RESET}] Cancel\n")
+
+    cut_mode = input(f"{Colors.CYAN}Select Mode [1-5] > {Colors.RESET}").strip()
+    if cut_mode in ("0", "b", "back"):
+        return
+
+    clips_out_dir = os.path.join(ASSETS_DIR, "clips", slug)
+    os.makedirs(clips_out_dir, exist_ok=True)
+
+    # ── Mode 5: Batch Multi-Clip Extractor ───────────────────────────────────
+    if cut_mode == "5":
+        print(f"\n{Colors.BOLD}Batch Multi-Clip Extractor:{Colors.RESET}")
+        print("Enter scene intervals in format 'start-end' or 'start duration'.")
+        print("Example: '00:10:00-00:10:30, 01:25:00-01:25:45' or enter one per line.")
+        batch_input = input(f"\n{Colors.CYAN}Enter intervals: {Colors.RESET}").strip()
+        if not batch_input:
+            print(f"{Colors.RED}No intervals provided.{Colors.RESET}")
+            pause()
+            return
+
+        intervals = [item.strip() for item in batch_input.split(",") if item.strip()]
+        rendered = []
+
+        is_vertical = input(f"{Colors.CYAN}Apply 9:16 vertical reformatting to all batch clips? (y/N) [default: n]: {Colors.RESET}").strip().lower() in ("y", "yes")
+
+        for idx, item in enumerate(intervals, 1):
+            try:
+                if "-" in item:
+                    s_str, e_str = item.split("-", 1)
+                    s_sec = parse_timestamp(s_str)
+                    e_sec = parse_timestamp(e_str)
+                    d_sec = max(1.0, e_sec - s_sec)
+                else:
+                    parts = item.split()
+                    s_sec = parse_timestamp(parts[0])
+                    d_sec = float(parts[1]) if len(parts) > 1 else 30.0
+
+                out_file = os.path.join(clips_out_dir, f"clip_{idx:02d}_{int(s_sec)}s_{int(d_sec)}s.mp4")
+                print(f"\nExtracting Scene #{idx}: {format_timestamp(s_sec)} for {d_sec:.1f}s -> {os.path.basename(out_file)}")
+
+                if is_vertical:
+                    crop_to_vertical(video_path, s_sec, d_sec, out_file)
+                else:
+                    cut_clip(video_path, start=str(s_sec), duration=str(d_sec), output_path=out_file, copy=True)
+
+                rendered.append(out_file)
+                print(f" {Colors.GREEN}Saved: {out_file}{Colors.RESET}")
+            except Exception as ex:
+                print(f"{Colors.RED}Error extracting '{item}': {ex}{Colors.RESET}")
+
+        print(f"\n{Colors.GREEN}{Colors.BOLD}Batch extraction complete! Extracted {len(rendered)} clips to:{Colors.RESET}")
+        print(f"  {clips_out_dir}")
+        if os.name == "nt" and rendered:
+            if input(f"\n{Colors.CYAN}Open destination folder in Explorer? (Y/n): {Colors.RESET}").strip().lower() not in ("n", "no"):
+                os.startfile(clips_out_dir)
         pause()
         return
 
-    # Parse timestamp if in HH:MM:SS format
-    if ":" in start_raw:
-        parts = [float(p) for p in start_raw.split(":")]
-        if len(parts) == 3:
-            start_sec = parts[0] * 3600 + parts[1] * 60 + parts[2]
-        elif len(parts) == 2:
-            start_sec = parts[0] * 60 + parts[1]
-        else:
-            start_sec = float(parts[0])
+    # ── Single Clip Modes (1, 2, 3, 4) ───────────────────────────────────────
+    start_raw = input(f"{Colors.CYAN}Start timestamp (e.g. 01:45:10, 45:10, or seconds) [default: 0]: {Colors.RESET}").strip()
+    start_sec = parse_timestamp(start_raw)
+
+    end_or_dur = input(f"{Colors.CYAN}Duration in seconds (e.g. 30) OR End timestamp (e.g. 01:45:40) [default: 30]: {Colors.RESET}").strip()
+    if not end_or_dur:
+        dur_sec = 30.0
+    elif ":" in end_or_dur:
+        end_sec = parse_timestamp(end_or_dur)
+        dur_sec = max(1.0, end_sec - start_sec)
     else:
-        start_sec = float(start_raw)
+        try:
+            dur_sec = float(end_or_dur)
+        except ValueError:
+            dur_sec = 30.0
 
-    # Duration
-    dur_input = input(f"{Colors.CYAN}Duration in seconds [default: 30.0]: {Colors.RESET}").strip()
-    duration = float(dur_input) if dur_input else 30.0
+    out_clip_name = f"{slug}_cut_{int(start_sec)}s_{int(dur_sec)}s.mp4"
+    out_clip_path = os.path.join(ASSETS_DIR, "clips", out_clip_name)
 
-    # Subtitles
-    subs_choice = input(f"{Colors.CYAN}Burn kinetic karaoke subtitles? (Y/n) [default: y]: {Colors.RESET}").strip().lower()
-    no_subs = subs_choice in ("n", "no")
+    print(f"\n{Colors.GREEN}{Colors.BOLD}Processing Clip: {format_timestamp(start_sec)} -> {format_timestamp(start_sec + dur_sec)} ({dur_sec}s)...{Colors.RESET}\n")
 
-    print(f"\n{Colors.GREEN}{Colors.BOLD}Executing Manual Extraction ({start_sec}s for {duration}s)...{Colors.RESET}\n")
-
-    cmd = [
-        sys.executable,
-        os.path.join(SCRIPTS_DIR, "run_ai_cutter.py"),
-        video_path,
-        "-s", str(start_sec),
-        "-t", str(duration),
-    ]
-    if no_subs:
-        cmd.append("--no-subs")
-
+    out_result = None
     try:
-        subprocess.run(cmd, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"\n{Colors.RED}Error: {e}{Colors.RESET}")
+        if cut_mode == "1":
+            # Fast Lossless Cut
+            print("Applying lossless stream copy (0 re-encoding)...")
+            out_result = cut_clip(video_path, start=str(start_sec), duration=str(dur_sec), output_path=out_clip_path, copy=True)
+
+        elif cut_mode == "2":
+            # AI Vertical 9:16 YuNet
+            print("Analyzing face focal center with YuNet and reframing to 1080x1920...")
+            out_result = crop_to_vertical(video_path, start_sec, dur_sec, out_clip_path)
+
+        elif cut_mode == "3":
+            # Standard 9:16 Center Crop
+            print("Cropping center 1080x1920...")
+            out_result = cut_clip(video_path, start=str(start_sec), duration=str(dur_sec), output_path=out_clip_path, vertical=True)
+
+        elif cut_mode == "4":
+            # Full AI Short with Subtitles
+            print("Running full AI Short pipeline (Crop + Transcription + Kinetic Karaoke + Grade)...")
+            final_short_path = os.path.join(ASSETS_DIR, "output", f"{slug}_short_{int(start_sec)}s.mp4")
+            cmd = [
+                sys.executable,
+                os.path.join(SCRIPTS_DIR, "run_ai_cutter.py"),
+                video_path,
+                "-s", str(start_sec),
+                "-t", str(dur_sec),
+            ]
+            subprocess.run(cmd, check=True)
+            out_result = final_short_path
+
+        if out_result and os.path.isfile(out_result):
+            print(f"\n{Colors.GREEN}{Colors.BOLD}SUCCESS! Clip saved to:{Colors.RESET}\n  {out_result}")
+            if os.name == "nt":
+                play = input(f"\n{Colors.CYAN}Play clip now in default media player? (Y/n) [default: y]: {Colors.RESET}").strip().lower()
+                if play not in ("n", "no"):
+                    os.startfile(out_result)
+        else:
+            print(f"{Colors.YELLOW}Clip created at {out_clip_path}{Colors.RESET}")
+    except Exception as ex:
+        print(f"\n{Colors.RED}Error processing clip: {ex}{Colors.RESET}")
+
     pause()
+
+
+# Backward compatibility alias
+menu_manual_cutter = menu_cut_video_clips
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -545,8 +696,8 @@ def main_menu():
         print(f"  {Colors.BOLD}[1]{Colors.RESET} {Colors.GREEN}Auto-Extract Top Viral Shorts{Colors.RESET} (Autonomous Pipeline)")
         print(f"      -> Ingest long video, detect top moments, 9:16 YuNet crop & karaoke burn\n")
 
-        print(f"  {Colors.BOLD}[2]{Colors.RESET} {Colors.CYAN}Manual Scene Extraction{Colors.RESET} (Custom Timestamp & Duration)")
-        print(f"      -> Extract specific scene (-s start, -t duration), face-reframe & captions\n")
+        print(f"  {Colors.BOLD}[2]{Colors.RESET} {Colors.CYAN}Cut Video Clips / Scene Extraction Studio{Colors.RESET} (Lossless / 9:16 / Batch)")
+        print(f"      -> Cut new video: Instant lossless cut, YuNet 9:16 vertical crop, batch scenes, or AI short\n")
 
         print(f"  {Colors.BOLD}[3]{Colors.RESET} {Colors.YELLOW}Movie Mystery Breakdown Shorts Engine{Colors.RESET}")
         print(f"      -> AI Script breakdown + Voiceover (ElevenLabs/Edge) + Multi-clip / Poster\n")

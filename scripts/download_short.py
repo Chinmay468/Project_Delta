@@ -19,9 +19,9 @@ import subprocess
 from typing import Optional, Dict, Any
 
 # Ensure stdout handles UTF-8 on Windows
-if sys.platform == "win32" and hasattr(sys.stdout, "buffer"):
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
     try:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 

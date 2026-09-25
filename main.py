@@ -16,6 +16,7 @@ import sys
 import subprocess
 import re
 import json
+import shutil
 from datetime import datetime, timezone, timedelta
 
 # Ensure repo root and scripts are in sys.path
@@ -550,6 +551,7 @@ def menu_modular_tools():
         print("  [3] Vertical Reframe / Face Crop (YuNet 9:16 speaker tracking)")
         print("  [4] Burn Kinetic Karaoke Subtitles & Grade (.ass / .mp4)")
         print("  [5] Upload / Schedule Short to YouTube")
+        print("  [6] Download YouTube Short / Reference Video (yt-dlp)")
         print("  [0] Return to Main Menu\n")
 
         sub_choice = input(f"{Colors.CYAN}Select Tool > {Colors.RESET}").strip()
@@ -735,6 +737,12 @@ def menu_modular_tools():
                 upload_video(vid, title, desc, ["movies", "shorts"], sched)
                 pause()
 
+        elif sub_choice == "6":
+            # Download YouTube Short / Video
+            from download_short import interactive_downloader
+            interactive_downloader()
+            pause()
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Feature 5: Gallery & Output Manager
@@ -791,11 +799,21 @@ def menu_gallery():
 def menu_health_check():
     print_header("6. SYSTEM HEALTH & API CONFIGURATION CHECK")
 
-    print(f"{Colors.BOLD}1. Core Media Binaries:{Colors.RESET}")
+    print(f"{Colors.BOLD}1. Core Media Binaries & Engines:{Colors.RESET}")
     ffmpeg_tool = _find_tool("ffmpeg")
     ffprobe_tool = _find_tool("ffprobe")
-    print(f"   FFmpeg : {Colors.GREEN}{ffmpeg_tool}{Colors.RESET}")
-    print(f"   FFprobe: {Colors.GREEN}{ffprobe_tool}{Colors.RESET}")
+    print(f"   FFmpeg   : {Colors.GREEN}{ffmpeg_tool}{Colors.RESET}")
+    print(f"   FFprobe  : {Colors.GREEN}{ffprobe_tool}{Colors.RESET}")
+    try:
+        import yt_dlp.version
+        print(f"   yt-dlp   : {Colors.GREEN}v{yt_dlp.version.__version__}{Colors.RESET}")
+    except Exception:
+        print(f"   yt-dlp   : {Colors.RED}Not installed{Colors.RESET}")
+    node_path = shutil.which("node")
+    if node_path:
+        print(f"   Node.js  : {Colors.GREEN}{node_path}{Colors.RESET}")
+    else:
+        print(f"   Node.js  : {Colors.YELLOW}Not found on PATH (recommended for YouTube challenge solving){Colors.RESET}")
 
     print(f"\n{Colors.BOLD}2. Local Computer Vision Models:{Colors.RESET}")
     yunet_path = os.path.join(ASSETS_DIR, "models", "face_detection_yunet_2023mar.onnx")

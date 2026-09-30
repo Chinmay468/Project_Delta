@@ -1,0 +1,79 @@
+name: Daily Instagram Reels Scheduler
+
+on:
+  schedule:
+    # 14:00 UTC is exactly 19:30 IST (7:30 PM Indian Standard Time)
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run check (verify download and auth without uploading)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  post-reel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libc-ares2 libcrypto++8 libmediainfo0v5 libzen0v5 ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install MEGAcmd
+        run: |
+          wget -q https://mega.nz/linux/repo/xUbuntu_22.04/amd64/megacmd-xUbuntu_22.04_amd64.deb
+          sudo dpkg -i megacmd-xUbuntu_22.04_amd64.deb || sudo apt-get -f install -y -qq
+
+      - name: Download Media from MEGA
+        run: |
+          mkdir -p media_downloads
+          echo "[MEGA] Downloading media folder..."
+          mega-get "https://mega.nz/folder/egwTiY4L#4K5dT03RmF_5KkU8mgFU-g" ./media_downloads/
+          echo "[MEGA] Download completed. Inspecting files:"
+          find ./media_downloads -maxdepth 2 -type f | head -n 20
+
+      - name: Post Next Scheduled Reel
+        env:
+          INSTAGRAM_SESSIONID: ${{ secrets.INSTAGRAM_SESSIONID }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "[RUN] Running in dry-run status check mode..."
+            python scripts/instagram_reels_uploader.py --status
+          else
+            echo "[RUN] Posting next scheduled Reel to @sitcomvaultdaily..."
+            python scripts/instagram_reels_uploader.py --post-next
+          fi
+
+      - name: Commit and Push Updated Queue
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add data/instagram_queue.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: record posted reel in queue [skip ci]" && git push)
+
+      - name: Clean up temporary media
+        if: always()
+        run: |
+          rm -rf media_downloads

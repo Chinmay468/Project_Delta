@@ -38,12 +38,39 @@ from instagrapi.exceptions import (
     LoginRequired
 )
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+CONFIG_DIR = REPO_ROOT / "config"
+DATA_DIR = REPO_ROOT / "data"
 ENV_FILE = CONFIG_DIR / ".env"
 SESSION_FILE = CONFIG_DIR / "instagram_session.json"
 
 MEDIA_BASE = Path(r"D:\Media\shorts")
-IG_QUEUE_FILE = MEDIA_BASE / "instagram_queue.json"
+
+
+def get_queue_file() -> Path:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    repo_q = DATA_DIR / "instagram_queue.json"
+    if repo_q.exists():
+        return repo_q
+    if MEDIA_BASE.exists() and (MEDIA_BASE / "instagram_queue.json").exists():
+        return MEDIA_BASE / "instagram_queue.json"
+    return repo_q
+
+
+IG_QUEUE_FILE = get_queue_file()
+
+
+def save_queue_data(queue_data: dict):
+    r"""Saves queue data to repo data/ and local D:\Media if available."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with open(DATA_DIR / "instagram_queue.json", "w", encoding="utf-8") as f:
+        json.dump(queue_data, f, indent=2, ensure_ascii=False)
+    if MEDIA_BASE.exists():
+        try:
+            with open(MEDIA_BASE / "instagram_queue.json", "w", encoding="utf-8") as f:
+                json.dump(queue_data, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
 
 
 def get_credentials():
@@ -158,9 +185,14 @@ def get_authenticated_client(relogin: bool = False, sessionid: str = None) -> Cl
     if ENV_FILE.exists():
         env_vars = dotenv_values(str(ENV_FILE))
 
-    env_session = env_vars.get("INSTAGRAM_SESSIONID")
+    env_session = os.environ.get("INSTAGRAM_SESSIONID") or env_vars.get("INSTAGRAM_SESSIONID")
     if env_session and not relogin:
         return login_with_sessionid(env_session)
+
+    # In CI / GitHub Actions, fail gracefully if secret missing instead of hanging
+    if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
+        print("[AUTH ERROR] Missing INSTAGRAM_SESSIONID secret in environment! Cannot prompt interactively in CI.")
+        sys.exit(1)
 
     print("\n" + "=" * 65)
     print("                 INSTAGRAM AUTHENTICATION")
@@ -429,6 +461,44 @@ def extract_thumbnail_if_needed(video_path: Path) -> Path:
     return None
 
 
+def resolve_video_path(item: dict) -> Path | None:
+    """Finds the local video file on disk across local media directories and cloud download folders."""
+    filename = item.get("file_name") or Path(item.get("local_path", "")).name
+
+    # 1. Direct local_path check
+    if item.get("local_path"):
+        lp = Path(item["local_path"])
+        if lp.exists() and lp.is_file():
+            return lp
+
+    # 2. Check candidate search directories
+    search_dirs = [
+        Path("media_downloads"),
+        Path("downloads"),
+        Path("media"),
+        Path("data"),
+        REPO_ROOT / "media_downloads",
+        REPO_ROOT / "downloads",
+        MEDIA_BASE / "diepvo8265_reels",
+        MEDIA_BASE / "himym",
+        MEDIA_BASE,
+    ]
+    for d in search_dirs:
+        if not d.exists():
+            continue
+        cand = d / filename
+        if cand.exists() and cand.is_file():
+            return cand
+        try:
+            matches = list(d.rglob(filename))
+            if matches:
+                return matches[0]
+        except Exception:
+            pass
+
+    return None
+
+
 def post_next_reel(cl: Client = None) -> bool:
     """Posts the next pending video from instagram_queue.json."""
     if not IG_QUEUE_FILE.exists():
@@ -444,13 +514,13 @@ def post_next_reel(cl: Client = None) -> bool:
         return False
 
     next_item = pending[0]
-    local_path = Path(next_item["local_path"])
+    local_path = resolve_video_path(next_item)
 
-    if not local_path.exists():
-        print(f"[ERROR] Local video file does not exist: {local_path}")
+    if not local_path or not local_path.exists():
+        print(f"[ERROR] Local video file does not exist for: {next_item.get('title')}")
+        print(f"        Target file name: {next_item.get('file_name', next_item.get('local_path'))}")
         next_item["status"] = "missing_file"
-        with open(IG_QUEUE_FILE, "w", encoding="utf-8") as f:
-            json.dump(queue_data, f, indent=2, ensure_ascii=False)
+        save_queue_data(queue_data)
         return False
 
     if cl is None:
@@ -500,8 +570,7 @@ def post_next_reel(cl: Client = None) -> bool:
         queue_data["posted_items"] = sum(1 for x in queue_data["queue"] if x.get("status") == "posted")
         queue_data["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        with open(IG_QUEUE_FILE, "w", encoding="utf-8") as f:
-            json.dump(queue_data, f, indent=2, ensure_ascii=False)
+        save_queue_data(queue_data)
 
         # Dump updated session
         cl.dump_settings(str(SESSION_FILE))
@@ -511,8 +580,7 @@ def post_next_reel(cl: Client = None) -> bool:
         print(f"[UPLOAD ERROR] Failed to upload Reel: {e}")
         next_item["status"] = "failed"
         next_item["error"] = str(e)
-        with open(IG_QUEUE_FILE, "w", encoding="utf-8") as f:
-            json.dump(queue_data, f, indent=2, ensure_ascii=False)
+        save_queue_data(queue_data)
         return False
 
 

@@ -1,122 +1,171 @@
-# Project Delta — Local AI Clip Cutter & YouTube Shorts Engine
+# Sitcom Vault Daily — Autonomous Instagram Reels & Shorts Pipeline
 
-An end-to-end, fully self-hosted local AI engine that automatically transcribes full-length video footage, detects high-retention 30–60s moments, applies intelligent face-tracking vertical re-framing (9:16), burns in active yellow karaoke subtitles, and renders ready-to-upload YouTube Shorts.
+An end-to-end, fully automated video ingestion, processing, and publishing pipeline for **Instagram Reels** and **vertical Shorts**. 
 
-Also includes the **High-Retention Movie Mystery Engine** for generating 4-part open-loop breakdown Shorts with dynamic multi-scene cuts and cinematic color grading.
-
----
-
-## Features
-
-- 🎙️ **Local Word-Level Audio Transcription**: Powered by `faster-whisper` (`base` model, `int8` CPU quantization or CUDA) with caching in `assets/cache/`.
-- 🧠 **Intelligent Viral Moment Detection**: NLP/heuristic scoring that detects question-and-answer patterns, punch words, speech cadence (120–170 wpm), and snaps to silence pauses (>0.4s) to eliminate awkward sentence cutoffs.
-- 👤 **Face-Tracking Auto-Cropper**: Dynamic 9:16 vertical re-framing using a 3-tier fallback (MediaPipe $\rightarrow$ OpenCV DNN YuNet $\rightarrow$ Haar Cascade) with Exponential Moving Average ($\alpha = 0.2$) smoothing.
-- ✨ **Kinetic Karaoke Subtitles**: Active word highlighted in bright yellow (`&H00FFFF&`) and inactive words in white (`&H00FFFFFF&`) with safe-zone margin (`MarginV=240`) above Shorts UI overlays.
-- 🎨 **Cinematic Color Grading**: Unified grading filter (`eq=contrast=1.12:saturation=1.15:brightness=-0.02`).
-- 🚀 **Automated YouTube Shorts Publishing**: Direct OAuth2 integration with YouTube Data API v3 for immediate publishing or scheduled release.
+Designed for high-throughput, multi-show sitcom syndication (The Big Bang Theory, How I Met Your Mother) with strict sequence preservation, Meta 90-second compliance splitting, automated thumbnail generation, and a resilient background scheduler with **missed-task catch-up** and **browser session auto-healing**.
 
 ---
 
-## Setup & Requirements
+## 🌟 Key Capabilities
 
-### 1. External Tools
-- **FFmpeg & FFprobe**: Must be installed and available on system `PATH` (or Windows WinGet links directory).
-  - Windows: `winget install Gyan.FFmpeg`
-  - macOS: `brew install ffmpeg`
-  - Linux: `sudo apt install ffmpeg`
+### 1. 📥 Sequential Video Ingestion & Library Sync
+* **Exact Upload Sequence Preservation**: Downloads channel libraries top-to-bottom in their exact original sequence using `yt-dlp`.
+* **Multi-Show Support**: Manages separate content libraries (e.g., The Big Bang Theory, How I Met Your Mother) with structured manifests.
+* **Human-Readable File Sanitizer**: Automatically cleans raw YouTube IDs into descriptive, human-readable scene titles across local disks and queue manifests.
 
-### 2. Python Environment
-Install required dependencies:
-```bash
-pip install -r requirements.txt
-```
-*(Note: If installing in an externally managed environment, add `--break-system-packages`.)*
+### 2. ✂️ Meta 90-Second Reels Compliance Splitter
+* **Lossless Stream Splitting**: Detects any video exceeding Meta's strict 90-second Reels limit and splits it into `Part 1` and `Part 2` using lossless FFmpeg stream copy (`-c copy`) without re-encoding quality loss.
+* **Synchronized Multi-Part Captions**: Automatically generates paired cliffhanger descriptions, tags, and calls-to-action ("Part 2 drops tomorrow!").
+* **OpenCV Thumbnail Extraction**: Grabs high-quality, high-expression video frames at key timestamps to serve as native Reel cover thumbnails.
 
-### 3. API Keys (Optional)
-Copy `config/.env.example` to `config/.env`:
-- `TMDB_API_KEY`: For movie metadata fetching.
-- `ELEVENLABS_API_KEY`: For ElevenLabs narration (or fallback to free `edge-tts`).
-- `config/client_secret.json`: Google Cloud OAuth2 credentials for YouTube uploading.
-
----
-
-## Quick Start & Usage
-
-### 🚀 Interactive Studio CLI (Recommended)
-Run the entire suite through the interactive menu-driven interface without needing to memorize flags:
-```powershell
-python main.py
-```
-From the interactive menu, you can:
-- Auto-extract top viral moments from any video
-- Extract custom scene timestamps with face-tracking
-- Run movie mystery breakdown generation
-- Test and access modular utilities (transcription, scoring, face-cropping, karaoke burn)
-- Browse and open rendered Shorts in Windows player / explorer
-- Run a system health check on FFmpeg, YuNet ONNX, and API keys
+### 3. ⏰ Autonomous Scheduling & Publishing Suite
+* **Autonomous Daily Publishing**: Hands-free daily posting at 19:30 local time (customizable).
+* **Smart Catch-Up & Wake Scheduling**:
+  * **Missed-Run Catch-Up (`StartWhenAvailable = True`)**: If the laptop is shut down or powered off at the scheduled posting time, Windows Task Scheduler automatically runs the upload the moment the machine boots up next.
+  * **Sleep Wake-Up (`WakeToRun = True`)**: Wakes the laptop from modern standby or sleep to execute scheduled uploads.
+  * **Battery Support**: Seamless execution whether plugged into AC power or running on battery.
+* **Browser Session Auto-Healing**: If the mobile API session ever flags `login_required`, the uploader automatically extracts and syncs fresh cookies from the persistent Playwright browser profile (`config/meta_suite_profile`) without interrupting you.
+* **Centralized Master Queue**: Real-time state tracking in `instagram_queue.json` and CSV exports for Meta Business Suite Planner (`meta_schedule.csv`).
 
 ---
 
-### CLI Direct Commands
+## 🏗️ Architecture & Workflow
 
-#### 1. Local AI Clip Cutter (Auto-Detect Top Viral Clips)
-Automatically transcribes, scores, face-crops, and captions the top viral moments from a full-length movie:
-```powershell
-python scripts/run_ai_cutter.py "D:\Media\movies\The Usual Suspects.mkv" --top 3
-```
+```mermaid
+flowchart TD
+    subgraph Ingestion ["1. Sequential Ingestion & Curation"]
+        A["YouTube Shorts Channel"] --> B["Sequential Downloader (yt-dlp)"]
+        B --> C["Raw Video Library (D:\Media\shorts\)"]
+    end
 
-### 2. Extract a Specific Scene Timestamp
-Manually crop and caption a specific scene with face tracking and kinetic subtitles:
-```powershell
-python scripts/run_ai_cutter.py "path/to/movie.mkv" -s 01:41:30 -t 40
-```
+    subgraph Processing ["2. 90s Splitter & Metadata Engine"]
+        C --> D["Length Check (<= 90s vs > 90s)"]
+        D -->|Over 90s| E["Lossless FFmpeg Split (Part 1 & Part 2)"]
+        D -->|Under 90s| F["Single Reel Format"]
+        E --> G["Clean Scene Title Sanitizer"]
+        F --> G
+        G --> H["OpenCV Thumbnail Generation"]
+        G --> I["High-CTR Description & Tag Generation"]
+    end
 
-### 3. High-Retention Mystery Narrative Shorts
-Generate a 4-part open-loop mystery Short from downloaded clips or posters:
-```powershell
-python scripts/run_pipeline.py "The Usual Suspects" --mode mystery --force
-```
-
-### 4. Upload / Schedule directly to YouTube
-```powershell
-python scripts/run_ai_cutter.py "path/to/movie.mkv" --top 1 --upload
+    subgraph Dispatch ["3. Queue & Autonomous Dispatch"]
+        H --> J["Master Queue (instagram_queue.json)"]
+        I --> J
+        J --> K["Windows Task Scheduler (19:30 Daily)"]
+        K -->|Missed if PC was OFF| L["Smart Catch-Up (Runs on Boot)"]
+        K -->|PC Sleeping| M["Wake-to-Run"]
+        K --> N["instagram_reels_uploader.py"]
+        N -->|Session Expired| O["Auto-Heal from Browser Profile"]
+        O --> N
+        N --> P["Published to @sitcomvaultdaily"]
+    end
 ```
 
 ---
 
-## Repository Structure
+## 📦 Repository Structure
 
 ```
 ├── config/
-│   ├── .env.example              # Sample environment configuration
-│   └── script_template.txt       # 4-part retention script structure
+│   ├── instagram_session.json        # Active mobile API session
+│   ├── meta_suite_profile/           # Playwright persistent Chrome profile for Meta
+│   ├── run_daily_instagram_upload.bat# Windows Task Scheduler runner
+│   ├── task_definition.xml           # Windows Task Scheduler configuration XML
+│   └── .env.example                  # Environment variables template
 ├── scripts/
-│   ├── run_ai_cutter.py          # End-to-end AI Clip Cutter CLI orchestrator
-│   ├── transcribe.py             # Local audio extraction & faster-whisper transcription
-│   ├── detect_clips.py           # NLP viral moment detection & silence gap snapping
-│   ├── face_crop.py              # Face detection (MediaPipe/OpenCV DNN) & 9:16 auto-crop
-│   ├── build_video.py            # FFmpeg kinetic karaoke ASS & multi-clip builder
-│   ├── cut_clip.py               # Standalone lossless & vertical scene cutter
-│   ├── run_pipeline.py           # Mystery shorts pipeline orchestrator
-│   ├── generate_script.py        # 4-part open-loop script generator
-│   ├── generate_voiceover.py     # edge-tts / ElevenLabs narration generator
-│   ├── fetch_movie_data.py       # TMDB API metadata fetcher
-│   └── upload_video.py           # YouTube Data API v3 publisher
-├── assets/
-│   ├── models/                   # Local face detection weights (YuNet ONNX, Haar XML)
-│   ├── audio/                    # Extracted and generated audio files
-│   ├── cache/                    # Cached Whisper transcripts
-│   ├── clips/                    # Cut video clips
-│   ├── output/                   # Final rendered 1080x1920 YouTube Shorts
-│   └── posters/                  # Movie posters
-├── requirements.txt              # Python dependencies
-├── .gitignore                    # Secrets, video binaries, and cache exclusion
+│   ├── instagram_reels_uploader.py   # Daily Instagram Reel dispatcher & queue processor
+│   ├── upgrade_windows_task.py       # Configures Task Scheduler with catch-up & wake settings
+│   ├── sync_and_download_diepvo.py   # Sequential YouTube channel downloader
+│   ├── split_tbbt_into_90s_reels.py  # Lossless 90-second splitter for Reels compliance
+│   ├── rename_shorts_to_title_names.py# Renames files from video IDs to scene titles
+│   ├── generate_rich_descriptions.py # High-CTR captions & hashtag generator
+│   ├── manage_profile_and_links.py   # Profile bio cleaner & link manager
+│   ├── login_instagram_browser.py    # Playwright browser login & cookie extractor
+│   └── schedule_meta_suite.py        # Meta Business Suite scheduling automations
+├── requirements.txt                  # Python dependencies
 └── README.md
 ```
 
 ---
 
-## Legal & Compliance
+## 🚀 Getting Started
 
-- **No Stream Scraping**: This tool processes only locally provided video files and does not scrape or rip copyrighted streams.
-- **Transformative Creation**: Combines critical analysis, commentary, kinetic typography, and editorial framing under Fair Use principles.
+### 1. Prerequisites
+* **Python**: 3.10+ (tested on Python 3.12 - 3.14)
+* **FFmpeg**: Must be available on system `PATH`
+  * Windows: `winget install Gyan.FFmpeg`
+  * macOS: `brew install ffmpeg`
+  * Linux: `sudo apt install ffmpeg`
+
+### 2. Installation
+```powershell
+# Clone the repository
+git clone https://github.com/Chinmay468/Project_Delta.git
+cd Project_Delta
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+## 🛠️ Usage Guide
+
+### 1. Daily Instagram Reels Automation
+
+#### Check Queue & Session Status
+```powershell
+python scripts/instagram_reels_uploader.py --status
+```
+
+#### Upload Next Queued Reel Manually
+```powershell
+python scripts/instagram_reels_uploader.py --post-next
+```
+
+#### Register / Upgrade Daily Scheduled Task
+Sets up the Windows Scheduled Task to run daily at 19:30 with **Missed-Run Catch-Up** and **Wake-from-Sleep** enabled:
+```powershell
+python scripts/upgrade_windows_task.py
+```
+
+#### One-Click Browser Session Login
+If Instagram requires a fresh login, open the persistent browser to capture cookies:
+```powershell
+python scripts/login_instagram_browser.py
+```
+
+---
+
+### 2. Video Processing & Library Management
+
+#### Download Shorts from a YouTube Channel in Order
+```powershell
+python scripts/sync_and_download_diepvo.py
+```
+
+#### Split Long Videos into 90s Reels (Lossless)
+```powershell
+python scripts/split_tbbt_into_90s_reels.py
+```
+
+#### Rename Raw Video IDs to Scene Titles
+```powershell
+python scripts/rename_shorts_to_title_names.py
+```
+
+#### Generate Rich Captions, Hooks & Hashtags
+```powershell
+python scripts/generate_rich_descriptions.py
+```
+
+---
+
+## ⚙️ Configuration & Credentials
+
+Copy `config/.env.example` to `config/.env`:
+* `INSTAGRAM_USERNAME`: Account handle (e.g. `sitcomvaultdaily`)
+* `INSTAGRAM_PASSWORD`: Account password (optional if using browser session)
+* `INSTAGRAM_SESSIONID`: Browser session cookie (optional)
+
+*All session tokens, browser storage states, and media directories are automatically excluded via `.gitignore`.*

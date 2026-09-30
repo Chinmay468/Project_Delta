@@ -155,6 +155,9 @@ def download_youtube_short(
         "no_warnings": False,
         "windowsfilenames": True,
         "restrictfilenames": False,
+        "socket_timeout": 30,
+        "retries": 10,
+        "fragment_retries": 10,
     }
 
     if ffmpeg_dir:

@@ -32,6 +32,14 @@ client_secret.json
 config/client_secret.json
 token.pickle
 credentials.json
+config/*.json
+!config/client_secret.json.example
+config/browser_profile/
+config/meta_suite_profile/
+config/*.bat
+config/*.xml
+*.png
+*.jpg
 
 # Generated Media & Intermediate Assets
 assets/audio/*

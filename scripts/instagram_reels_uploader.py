@@ -616,6 +616,14 @@ def show_status():
     print("      INSTAGRAM REELS PIPELINE STATUS")
     print("=" * 60)
 
+    # Auto-login if INSTAGRAM_SESSIONID in env
+    env_sid = os.environ.get("INSTAGRAM_SESSIONID")
+    if not SESSION_FILE.exists() and env_sid:
+        try:
+            login_with_sessionid(env_sid)
+        except Exception:
+            pass
+
     # Auth check
     if SESSION_FILE.exists():
         try:
@@ -685,12 +693,15 @@ def main():
     elif args.build_queue:
         build_or_sync_queue()
     elif args.post_next:
-        post_next_reel()
+        cl = get_authenticated_client(sessionid=args.sessionid)
+        post_next_reel(cl)
     elif args.post_file:
         post_file(args.post_file, args.caption)
     elif args.schedule_daily:
         setup_windows_daily_task(args.schedule_daily)
     elif args.status:
+        if args.sessionid:
+            get_authenticated_client(sessionid=args.sessionid)
         show_status()
     else:
         # Default behavior: if no args given, build queue and show status

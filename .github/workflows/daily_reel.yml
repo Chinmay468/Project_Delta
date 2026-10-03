@@ -2,8 +2,8 @@ name: Daily Instagram Reels Scheduler
 
 on:
   schedule:
-    # 14:00 UTC is exactly 19:30 IST (7:30 PM Indian Standard Time)
-    - cron: '0 14 * * *'
+    # 14:05 UTC is 19:35 IST (7:35 PM IST) -- 5-minute offset avoids top-of-the-hour runner starvation
+    - cron: '5 14 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

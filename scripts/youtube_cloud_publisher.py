@@ -37,7 +37,8 @@ CHANNEL_CONFIGS = {
         "category_id": "19", # Travel & Events
         "queue_file": DATA_DIR / "just_nature_queue.json",
         "token_env": "YOUTUBE_TOKEN_JUST_NATURE",
-        "local_token": CONFIG_DIR / "token_just_nature.json"
+        "local_token": CONFIG_DIR / "token_just_nature.json",
+        "local_media_dirs": [Path(r"D:\Media\shorts\just_nature"), Path(r"D:\Media\shorts\just_nature\norway")]
     },
     "asset_vault": {
         "name": "The Asset Vault",
@@ -45,7 +46,8 @@ CHANNEL_CONFIGS = {
         "category_id": "27", # Education / Finance
         "queue_file": DATA_DIR / "wealth_shorts" / "wealth_shorts_queue.json",
         "token_env": "YOUTUBE_TOKEN_ASSET_VAULT",
-        "local_token": CONFIG_DIR / "token.json"
+        "local_token": CONFIG_DIR / "token.json",
+        "local_media_dirs": [Path(r"D:\Media\shorts\the_asset_vault")]
     }
 }
 
@@ -85,41 +87,80 @@ def get_credentials(cfg):
 
     return creds
 
-def download_from_mega(mega_folder, filename, download_dir):
+def download_from_mega(mega_folder, filename, download_dir, item=None, cfg=None):
     download_dir = Path(download_dir)
     download_dir.mkdir(parents=True, exist_ok=True)
-    target_path = download_dir / filename
 
-    if target_path.exists() and target_path.stat().st_size > 0:
-        log(f"File already downloaded: {target_path} ({target_path.stat().st_size / (1024*1024):.2f} MB)")
-        return target_path
+    # Clean filename by stripping any path prefixes (e.g. Windows backslashes on Linux runners)
+    clean_name = None
+    if filename:
+        clean_name = Path(str(filename).replace("\\", "/")).name
 
-    # Check if file exists locally in typical PC path first
-    for fallback in [
-        Path(r"D:\Media\shorts\just_nature") / filename,
-        Path(r"D:\Media\shorts\just_nature\norway") / filename,
-        Path(r"D:\Media\shorts\the_asset_vault") / filename
-    ]:
-        if fallback.exists():
-            log(f"Using local PC file: {fallback}")
-            return fallback
+    # Check if file exists locally in channel's specific media dirs first (for local runs on Windows)
+    local_dirs = (cfg.get("local_media_dirs") if cfg else None) or [
+        Path(r"D:\Media\shorts\just_nature"),
+        Path(r"D:\Media\shorts\just_nature\norway"),
+        Path(r"D:\Media\shorts\the_asset_vault")
+    ]
+    for fallback_dir in local_dirs:
+        if fallback_dir.exists():
+            if clean_name:
+                p = fallback_dir / clean_name
+                if p.exists() and p.stat().st_size > 0:
+                    log(f"Using local PC file: {p}")
+                    return p
+            if item:
+                vid_id = item.get("id", "").replace("asset_vault_", "")
+                idx = item.get("index")
+                for f in fallback_dir.glob("*.mp4"):
+                    if vid_id and vid_id in f.name:
+                        log(f"Using local PC file (id match): {f}")
+                        return f
+                    if idx and (f"_{idx:02d}_" in f.name or f"_{idx}_" in f.name):
+                        log(f"Using local PC file (index match): {f}")
+                        return f
 
-    log(f"Downloading '{filename}' from MEGA folder {mega_folder}...")
-    
+    if clean_name:
+        target_path = download_dir / clean_name
+        if target_path.exists() and target_path.stat().st_size > 0:
+            log(f"File already downloaded: {target_path} ({target_path.stat().st_size / (1024*1024):.2f} MB)")
+            return target_path
+
+    display_name = clean_name or (item.get("title") if item else "unknown")
+    log(f"Downloading '{display_name}' from MEGA folder {mega_folder}...")
+
     # Try downloading via mega-get in Linux / GitHub Actions
     try:
         cmd = ["mega-get", mega_folder, str(download_dir)]
         proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.stdout:
+            log(f"[mega-get stdout] {proc.stdout.strip()[:300]}")
+        if proc.stderr:
+            log(f"[mega-get stderr] {proc.stderr.strip()[:300]}")
     except FileNotFoundError:
         log("[WARNING] mega-get not found on this system. Assuming local file or manual download.")
-    
-    # Search for the file in download_dir (recursively in case MEGA creates a subfolder)
-    matched = list(download_dir.rglob(filename))
-    if matched and matched[0].exists() and matched[0].stat().st_size > 0:
-        log(f"Successfully retrieved from MEGA: {matched[0]}")
-        return matched[0]
 
-    raise FileNotFoundError(f"Could not download or find '{filename}'.")
+    # 1. Exact filename match
+    if clean_name:
+        matched = [p for p in download_dir.rglob("*") if p.is_file() and p.name == clean_name and p.stat().st_size > 0]
+        if matched:
+            log(f"Successfully retrieved from MEGA (exact match): {matched[0]}")
+            return matched[0]
+
+    # 2. Fuzzy match by video ID or index in downloaded files (handles emoji discrepancies between Windows/Linux)
+    if item:
+        vid_id = item.get("id", "").replace("asset_vault_", "")
+        idx = item.get("index")
+        for f in download_dir.rglob("*.mp4"):
+            if f.is_file() and f.stat().st_size > 0:
+                if vid_id and vid_id in f.name:
+                    log(f"Successfully retrieved from MEGA (matched by ID {vid_id}): {f}")
+                    return f
+                if idx and (f"_{idx:02d}_" in f.name or f"_{idx}_" in f.name):
+                    log(f"Successfully retrieved from MEGA (matched by index {idx}): {f}")
+                    return f
+
+    raise FileNotFoundError(f"Could not download or find video for item: {display_name}")
 
 def upload_short(youtube, video_path, item, cfg, dry_run=False):
     log(f"Preparing upload for: {item['title']}")
@@ -226,7 +267,7 @@ def main():
 
     # Download file
     temp_dir = ROOT / "media_downloads"
-    video_path = download_from_mega(mega_folder, filename, temp_dir)
+    video_path = download_from_mega(mega_folder, filename, temp_dir, item=next_item, cfg=cfg)
 
     # Upload
     vid_id = upload_short(youtube, video_path, next_item, cfg, dry_run=args.dry_run)

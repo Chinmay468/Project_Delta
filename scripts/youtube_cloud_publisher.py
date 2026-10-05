@@ -179,8 +179,8 @@ def upload_short(youtube, video_path, item, cfg, dry_run=False):
     body = {
         "snippet": {
             "title": item["title"][:100],
-            "description": item["description"],
-            "tags": item.get("tags", []),
+            "description": item.get("description") or item.get("caption") or item.get("title", ""),
+            "tags": item.get("tags") or ["Shorts", "Sitcom", "TheBigBangTheory", "Funny"],
             "categoryId": cfg["category_id"],
             "defaultLanguage": "en"
         },

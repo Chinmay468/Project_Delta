@@ -323,16 +323,25 @@ def main():
 
     if not args.dry_run:
         # Update item in queue
-        next_item["status"] = "posted"
         next_item["youtube_id"] = vid_id
         next_item["youtube_url"] = yt_url
         next_item["published_at"] = datetime.now().isoformat()
 
-        # Recalculate counts
-        if "posted_items" in q_data:
-            q_data["posted_items"] = sum(1 for q in queue if q.get("status") == "posted")
-        if "pending_items" in q_data:
-            q_data["pending_items"] = sum(1 for q in queue if q.get("status") in ["pending", "ready_to_schedule"])
+        if args.channel == "sitcom_vault":
+            # For Sitcom Vault, queue status tracks Instagram posting
+            if next_item.get("instagram_media_id"):
+                next_item["status"] = "posted"
+            # Recalculate counts based on Instagram media ID
+            if "posted_items" in q_data:
+                q_data["posted_items"] = sum(1 for q in queue if q.get("instagram_media_id"))
+            if "pending_items" in q_data:
+                q_data["pending_items"] = sum(1 for q in queue if not q.get("instagram_media_id"))
+        else:
+            next_item["status"] = "posted"
+            if "posted_items" in q_data:
+                q_data["posted_items"] = sum(1 for q in queue if q.get("status") == "posted")
+            if "pending_items" in q_data:
+                q_data["pending_items"] = sum(1 for q in queue if q.get("status") in ["pending", "ready_to_schedule"])
 
         with open(queue_file, "w", encoding="utf-8") as f:
             json.dump(q_data, f, indent=2, ensure_ascii=False)

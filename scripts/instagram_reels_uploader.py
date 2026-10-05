@@ -499,6 +499,63 @@ def resolve_video_path(item: dict) -> Path | None:
     return None
 
 
+def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnail: Path = None):
+    """
+    Uploads a Reel to Instagram and automatically cross-posts to Facebook.
+    Tries explicit Facebook Page destination first, then auto-detection,
+    and falls back safely to Instagram-only if Facebook cross-posting encounters an error.
+    """
+    fb_page_id = os.environ.get("FB_PAGE_ID") or os.environ.get("FB_DESTINATION_ID") or "61595194282867"
+
+    # Attempt 1: Explicit Facebook Page destination
+    if fb_page_id:
+        try:
+            print(f"[CROSSPOST] Uploading Reel with Facebook Page cross-posting (Page ID: {fb_page_id})...")
+            return cl.clip_upload(
+                path=path,
+                caption=caption,
+                thumbnail=thumbnail,
+                show_preview_in_feed=True,
+                share_to_facebook=True,
+                fb_destination_id=str(fb_page_id),
+                fb_destination_type="PAGE",
+            )
+        except Exception as fb_err:
+            print(f"[CROSSPOST] Warning: Page-specific cross-post failed ({fb_err}). Trying auto-destination...")
+
+    # Attempt 2: Auto-detected Facebook destination
+    try:
+        print("[CROSSPOST] Attempting upload with auto-detected Facebook destination...")
+        return cl.clip_upload(
+            path=path,
+            caption=caption,
+            thumbnail=thumbnail,
+            show_preview_in_feed=True,
+            share_to_facebook=True,
+        )
+    except Exception as auto_err:
+        print(f"[CROSSPOST] Warning: Auto Facebook cross-post failed ({auto_err}). Falling back to Instagram-only...")
+
+    # Attempt 3: Standard Instagram clip upload (no Facebook cross-post)
+    try:
+        return cl.clip_upload(
+            path=path,
+            caption=caption,
+            thumbnail=thumbnail,
+            show_preview_in_feed=True,
+            share_to_facebook=False,
+        )
+    except Exception as upload_err:
+        if "upload_settings" in str(upload_err).lower() or "login_required" in str(upload_err).lower():
+            print(f"[POSTING] Notice: Mobile clip_upload restricted ({upload_err}). Retrying via direct video_upload...")
+            return cl.video_upload(
+                path=path,
+                caption=caption,
+                thumbnail=thumbnail,
+            )
+        raise upload_err
+
+
 def post_next_reel(cl: Client = None) -> bool:
     """Posts the next pending video from instagram_queue.json."""
     if not IG_QUEUE_FILE.exists():
@@ -507,8 +564,11 @@ def post_next_reel(cl: Client = None) -> bool:
     with open(IG_QUEUE_FILE, "r", encoding="utf-8") as f:
         queue_data = json.load(f)
 
-    # Allow retrying failed items if requested or select next pending
-    pending = [item for item in queue_data.get("queue", []) if item.get("status") in ["pending", "failed"]]
+    # Pick the next video that has not been posted to Instagram yet
+    pending = [
+        item for item in queue_data.get("queue", [])
+        if not item.get("instagram_media_id") and item.get("status") != "missing_file"
+    ]
     if not pending:
         print("[QUEUE] No pending videos left to post in Instagram queue!")
         return False
@@ -531,24 +591,12 @@ def post_next_reel(cl: Client = None) -> bool:
     print(f"          File:  {local_path.name} ({local_path.stat().st_size / (1024*1024):.1f} MB)")
     try:
         thumb_path = extract_thumbnail_if_needed(local_path)
-        media = None
-        try:
-            media = cl.clip_upload(
-                path=local_path,
-                caption=next_item["caption"],
-                thumbnail=thumb_path,
-                show_preview_in_feed=True
-            )
-        except Exception as upload_err:
-            if "upload_settings" in str(upload_err).lower() or "login_required" in str(upload_err).lower():
-                print(f"[POSTING] Notice: Mobile clip_upload restricted ({upload_err}). Retrying via direct video_upload...")
-                media = cl.video_upload(
-                    path=local_path,
-                    caption=next_item["caption"],
-                    thumbnail=thumb_path
-                )
-            else:
-                raise upload_err
+        media = upload_clip_with_fb_crosspost(
+            cl=cl,
+            path=local_path,
+            caption=next_item["caption"],
+            thumbnail=thumb_path
+        )
 
         code = getattr(media, "code", None)
         media_id = getattr(media, "id", None) or getattr(media, "pk", None)
@@ -566,8 +614,8 @@ def post_next_reel(cl: Client = None) -> bool:
         next_item["instagram_url"] = reel_url
         next_item["posted_at"] = datetime.now().isoformat()
 
-        queue_data["pending_items"] = sum(1 for x in queue_data["queue"] if x.get("status") == "pending")
-        queue_data["posted_items"] = sum(1 for x in queue_data["queue"] if x.get("status") == "posted")
+        queue_data["pending_items"] = sum(1 for x in queue_data["queue"] if not x.get("instagram_media_id"))
+        queue_data["posted_items"] = sum(1 for x in queue_data["queue"] if x.get("instagram_media_id"))
         queue_data["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
 
         save_queue_data(queue_data)
@@ -595,15 +643,7 @@ def post_file(path_str: str, caption_override: str = None):
     caption = caption_override or build_instagram_caption(path.stem, "TBBT")
     print(f"[POSTING] Uploading {path.name} as Reel...")
     thumb_path = extract_thumbnail_if_needed(path)
-    media = None
-    try:
-        media = cl.clip_upload(path=path, caption=caption, thumbnail=thumb_path, show_preview_in_feed=True)
-    except Exception as upload_err:
-        if "upload_settings" in str(upload_err).lower() or "login_required" in str(upload_err).lower():
-            print(f"[POSTING] Notice: Mobile clip_upload restricted ({upload_err}). Retrying via direct video_upload...")
-            media = cl.video_upload(path=path, caption=caption, thumbnail=thumb_path)
-        else:
-            raise upload_err
+    media = upload_clip_with_fb_crosspost(cl=cl, path=path, caption=caption, thumbnail=thumb_path)
 
     code = getattr(media, "code", None)
     print(f"🎉 Posted! URL: https://www.instagram.com/reel/{code}/")

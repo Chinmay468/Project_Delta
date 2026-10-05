@@ -56,6 +56,7 @@ jobs:
       - name: Post Next Scheduled Reel
         env:
           INSTAGRAM_SESSIONID: ${{ secrets.INSTAGRAM_SESSIONID }}
+          FB_PAGE_ID: "61595194282867"
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "[RUN] Running in dry-run status check mode..."

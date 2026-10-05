@@ -36,7 +36,7 @@ ENV_FILE = CONFIG_DIR / ".env"
 QUEUE_FILE = DATA_DIR / "instagram_queue.json"
 MEDIA_BASE = Path(r"D:\Media\shorts")
 
-DEFAULT_PAGE_ID = "61595194282867"  # Sitcom Vault Page ID
+DEFAULT_PAGE_ID = "1304317289439428"  # Sitcom Vault Page ID
 GRAPH_API_VERSION = "v20.0"
 
 

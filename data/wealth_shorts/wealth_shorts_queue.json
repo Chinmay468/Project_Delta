@@ -73,11 +73,14 @@
       "local_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_03_The_Power_Of_Letting_Go_⚡️_-WkkMeVQUg8.mp4",
       "thumbnail_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_03_The_Power_Of_Letting_Go_⚡️_-WkkMeVQUg8.jpg",
       "duration": 30.0,
-      "status": "pending",
+      "status": "posted",
       "channel": "@theassetvault",
       "created_at": "2026-10-03T10:49:37",
       "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
-      "filename": "asset_vault_03_The_Power_Of_Letting_Go_⚡️_-WkkMeVQUg8.mp4"
+      "filename": "asset_vault_03_The_Power_Of_Letting_Go_⚡️_-WkkMeVQUg8.mp4",
+      "youtube_id": "jir4up72m94",
+      "youtube_url": "https://www.youtube.com/shorts/jir4up72m94",
+      "published_at": "2026-10-05T14:15:07.288542"
     },
     {
       "index": 4,
@@ -994,6 +997,6 @@
   ],
   "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
   "scheduled_items": 10,
-  "pending_items": 39,
-  "posted_items": 2
+  "pending_items": 38,
+  "posted_items": 3
 }

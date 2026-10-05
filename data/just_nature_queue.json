@@ -2,8 +2,8 @@
   "channel": "@just.nature46",
   "channel_id": "UC_q-3rJiSjslro_sIUUNI4jA",
   "total_items": 56,
-  "posted_items": 8,
-  "pending_items": 48,
+  "posted_items": 9,
+  "pending_items": 47,
   "queue": [
     {
       "index": 1,
@@ -216,9 +216,10 @@
       ],
       "pillar": "Scenic Swiss Trains",
       "scheduled_time": "2026-10-10T18:00:00Z",
-      "status": "pending",
-      "youtube_id": null,
-      "youtube_url": null
+      "status": "posted",
+      "youtube_id": "oVXMI35XuxE",
+      "youtube_url": "https://www.youtube.com/shorts/oVXMI35XuxE",
+      "published_at": "2026-10-05T13:22:25.456885"
     },
     {
       "index": 8,

@@ -56,6 +56,7 @@ CHANNEL_CONFIGS = {
         "queue_file": DATA_DIR / "instagram_queue.json",
         "token_env": "YOUTUBE_TOKEN_SITCOM_VAULT",
         "local_token": CONFIG_DIR / "token_sitcom.json",
+        "mega_folder": "https://mega.nz/folder/egwTiY4L#4K5dT03RmF_5KkU8mgFU-g",
         "local_media_dirs": [Path(r"D:\Media\shorts\diepvo8265_reels"), Path(r"D:\Media\shorts\himym")]
     }
 }

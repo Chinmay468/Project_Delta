@@ -507,7 +507,19 @@ def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnai
     """
     fb_page_id = os.environ.get("FB_PAGE_ID") or os.environ.get("FB_DESTINATION_ID") or "61595194282867"
 
-    # Attempt 1: Explicit Facebook Page destination
+    # Build Reel-specific cross-posting extra data
+    fb_reel_data = {}
+    if fb_page_id:
+        try:
+            fb_reel_data = cl.clip_share_to_fb_extra_data(
+                config={"share_to_facebook": "1"},
+                destination_id=str(fb_page_id),
+                destination_type="PAGE"
+            )
+        except Exception as e:
+            print(f"[CROSSPOST] Notice: Could not build clip_share_to_fb_extra_data: {e}")
+
+    # Attempt 1: Explicit Facebook Page destination with Reels cross-posting data
     if fb_page_id:
         try:
             print(f"[CROSSPOST] Uploading Reel with Facebook Page cross-posting (Page ID: {fb_page_id})...")
@@ -519,6 +531,7 @@ def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnai
                 share_to_facebook=True,
                 fb_destination_id=str(fb_page_id),
                 fb_destination_type="PAGE",
+                extra_data=fb_reel_data,
             )
         except Exception as fb_err:
             print(f"[CROSSPOST] Warning: Page-specific cross-post failed ({fb_err}). Trying auto-destination...")
@@ -556,24 +569,31 @@ def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnai
         raise upload_err
 
 
-def post_next_reel(cl: Client = None) -> bool:
-    """Posts the next pending video from instagram_queue.json."""
+def post_next_reel(cl: Client = None, target_index: int = None) -> bool:
+    """Posts the next pending video (or a specific target_index) from instagram_queue.json."""
     if not IG_QUEUE_FILE.exists():
         build_or_sync_queue()
 
     with open(IG_QUEUE_FILE, "r", encoding="utf-8") as f:
         queue_data = json.load(f)
 
-    # Pick the next video that has not been posted to Instagram yet
-    pending = [
-        item for item in queue_data.get("queue", [])
-        if not item.get("instagram_media_id") and item.get("status") != "missing_file"
-    ]
-    if not pending:
-        print("[QUEUE] No pending videos left to post in Instagram queue!")
-        return False
+    if target_index is not None:
+        matched = [item for item in queue_data.get("queue", []) if item.get("queue_index") == target_index]
+        if not matched:
+            print(f"[QUEUE] Item #{target_index} not found in queue!")
+            return False
+        next_item = matched[0]
+    else:
+        # Pick the next video that has not been posted to Instagram yet
+        pending = [
+            item for item in queue_data.get("queue", [])
+            if not item.get("instagram_media_id") and item.get("status") != "missing_file"
+        ]
+        if not pending:
+            print("[QUEUE] No pending videos left to post in Instagram queue!")
+            return False
+        next_item = pending[0]
 
-    next_item = pending[0]
     local_path = resolve_video_path(next_item)
 
     if not local_path or not local_path.exists():
@@ -585,6 +605,16 @@ def post_next_reel(cl: Client = None) -> bool:
 
     if cl is None:
         cl = get_authenticated_client()
+
+    # If reposting a specific index, delete previous reel from Instagram to avoid duplicates
+    if target_index is not None and next_item.get("instagram_media_id"):
+        old_id = next_item.get("instagram_media_id")
+        try:
+            print(f"[CLEANUP] Removing previous upload ({old_id}) to avoid duplicates on Instagram...")
+            cl.media_delete(old_id)
+            print("[CLEANUP] Previous upload successfully removed!")
+        except Exception as del_err:
+            print(f"[CLEANUP] Notice: Could not remove previous upload ({del_err}). Continuing...")
 
     print(f"\n[POSTING] Uploading Reel #{next_item['queue_index']} ({next_item['show']}):")
     print(f"          Title: {next_item['title']}")
@@ -710,6 +740,7 @@ def main():
     parser.add_argument("--relogin", action="store_true", help="Force re-login even if session exists")
     parser.add_argument("--build-queue", action="store_true", help="Scan local files and build D:\\Media\\shorts\\instagram_queue.json")
     parser.add_argument("--post-next", action="store_true", help="Upload the next pending video from the queue")
+    parser.add_argument("--post-index", type=int, help="Upload a specific video from the queue by its index")
     parser.add_argument("--post-file", type=str, help="Upload a specific video file")
     parser.add_argument("--caption", type=str, help="Optional caption for --post-file")
     parser.add_argument("--status", action="store_true", help="Show session and queue status")
@@ -732,6 +763,11 @@ def main():
         show_status()
     elif args.build_queue:
         build_or_sync_queue()
+    elif args.post_index is not None:
+        cl = get_authenticated_client(sessionid=args.sessionid)
+        success = post_next_reel(cl, target_index=args.post_index)
+        if not success:
+            sys.exit(1)
     elif args.post_next:
         cl = get_authenticated_client(sessionid=args.sessionid)
         success = post_next_reel(cl)

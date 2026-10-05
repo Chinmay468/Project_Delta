@@ -11,6 +11,11 @@ on:
         required: false
         default: false
         type: boolean
+      post_index:
+        description: 'Optional queue index to post specifically (e.g. 5 for Part 1)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -58,7 +63,10 @@ jobs:
           INSTAGRAM_SESSIONID: ${{ secrets.INSTAGRAM_SESSIONID }}
           FB_PAGE_ID: "61595194282867"
         run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ -n "${{ inputs.post_index }}" ]; then
+            echo "[RUN] Posting Reel #${{ inputs.post_index }} to @sitcomvaultdaily and Facebook Page..."
+            python scripts/instagram_reels_uploader.py --post-index "${{ inputs.post_index }}"
+          elif [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "[RUN] Running in dry-run status check mode..."
             python scripts/instagram_reels_uploader.py --status
           else

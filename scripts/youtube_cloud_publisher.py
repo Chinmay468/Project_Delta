@@ -255,6 +255,7 @@ def main():
     parser.add_argument("--delete-scheduled", action="store_true", help="Delete all scheduled private videos on the channel")
     parser.add_argument("--status", action="store_true", help="Show queue status")
     parser.add_argument("--dry-run", action="store_true", help="Simulate without uploading")
+    parser.add_argument("--force", action="store_true", help="Force upload regardless of future scheduled date")
     args = parser.parse_args()
 
     cfg = CHANNEL_CONFIGS[args.channel]
@@ -301,6 +302,13 @@ def main():
 
     next_item = pending[0]
     log(f"Selected next item: #{next_item.get('index', 1)}: {next_item['title']}")
+
+    from datetime import timezone
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    item_date = (next_item.get("scheduled_time") or next_item.get("publish_at") or "")[:10]
+    if not getattr(args, "force", False) and item_date and item_date > today_str:
+        log(f"[SCHEDULE GUARD] Next item #{next_item.get('index', 1)} is scheduled for {item_date}. Current date is {today_str}. Upcoming dates are already scheduled on YouTube Studio. Skipping run.")
+        return
 
     # Authenticate
     creds = get_credentials(cfg)

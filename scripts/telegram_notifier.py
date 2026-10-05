@@ -107,28 +107,29 @@ def notify_published(
     # Platform badge emoji
     p_lower = platform.lower()
     if "youtube" in p_lower:
-        badge = "🔴 *YouTube Short Published*"
+        badge = "🔴 <b>YouTube Short Scheduled / Published</b>"
     elif "instagram" in p_lower:
-        badge = "📸 *Instagram Reel Published*"
+        badge = "📸 <b>Instagram Reel Published</b>"
     elif "facebook" in p_lower:
-        badge = "🔵 *Facebook Reel Published*"
+        badge = "🔵 <b>Facebook Reel Published</b>"
     else:
-        badge = f"🚀 *{platform} Video Published*"
+        badge = f"🚀 <b>{platform} Video Published</b>"
 
     idx_str = f" (#{queue_index})" if queue_index else ""
 
     message = (
         f"{badge}\n\n"
-        f"📺 *Channel:* `{channel}`\n"
-        f"🎬 *Title:* {title}{idx_str}\n"
-        f"🔗 *Watch Link:* {url}\n"
-        f"⏰ *Published at:* `{now_str}`"
+        f"📺 <b>Channel:</b> <code>{channel}</code>\n"
+        f"🎬 <b>Title:</b> {title}{idx_str}\n"
+        f"🔗 <b>Watch Link:</b> {url}\n"
+        f"⏰ <b>Time:</b> <code>{now_str}</code>"
     )
 
     if extra_info:
-        message += f"\nℹ️ _{extra_info}_"
+        message += f"\nℹ️ <i>{extra_info}</i>"
 
-    return send_telegram_message(message)
+    return send_telegram_message(message, parse_mode="HTML")
+
 
 
 def notify_error(platform: str, channel: str, error_msg: str, title: str = None) -> bool:

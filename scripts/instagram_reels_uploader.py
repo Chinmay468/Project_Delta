@@ -694,7 +694,9 @@ def main():
         build_or_sync_queue()
     elif args.post_next:
         cl = get_authenticated_client(sessionid=args.sessionid)
-        post_next_reel(cl)
+        success = post_next_reel(cl)
+        if not success:
+            sys.exit(1)
     elif args.post_file:
         post_file(args.post_file, args.caption)
     elif args.schedule_daily:

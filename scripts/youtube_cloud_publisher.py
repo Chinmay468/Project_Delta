@@ -308,7 +308,7 @@ def main():
     if not filename and "local_path" in next_item:
         filename = Path(next_item["local_path"]).name
 
-    mega_folder = next_item.get("mega_folder") or q_data.get("mega_folder")
+    mega_folder = next_item.get("mega_folder") or q_data.get("mega_folder") or cfg.get("mega_folder")
 
     # Download file
     temp_dir = ROOT / "media_downloads"

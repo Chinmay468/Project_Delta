@@ -48,6 +48,15 @@ CHANNEL_CONFIGS = {
         "token_env": "YOUTUBE_TOKEN_ASSET_VAULT",
         "local_token": CONFIG_DIR / "token.json",
         "local_media_dirs": [Path(r"D:\Media\shorts\the_asset_vault")]
+    },
+    "sitcom_vault": {
+        "name": "Sitcom Vault Daily",
+        "handle": "@sitcomvaultdaily",
+        "category_id": "24", # Entertainment / Comedy
+        "queue_file": DATA_DIR / "instagram_queue.json",
+        "token_env": "YOUTUBE_TOKEN_SITCOM_VAULT",
+        "local_token": CONFIG_DIR / "token_sitcom.json",
+        "local_media_dirs": [Path(r"D:\Media\shorts\diepvo8265_reels"), Path(r"D:\Media\shorts\himym")]
     }
 }
 
@@ -240,7 +249,7 @@ def delete_scheduled_videos(youtube):
 
 def main():
     parser = argparse.ArgumentParser(description="YouTube Cloud Daily Publisher")
-    parser.add_argument("--channel", choices=["just_nature", "asset_vault"], default="just_nature", help="Channel key")
+    parser.add_argument("--channel", choices=["just_nature", "asset_vault", "sitcom_vault"], default="just_nature", help="Channel key")
     parser.add_argument("--post-next", action="store_true", help="Post the next scheduled video")
     parser.add_argument("--delete-scheduled", action="store_true", help="Delete all scheduled private videos on the channel")
     parser.add_argument("--status", action="store_true", help="Show queue status")

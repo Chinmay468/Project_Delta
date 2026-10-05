@@ -615,9 +615,21 @@ def post_next_reel(cl: Client = None, target_index: int = None) -> bool:
 
         queue_data["pending_items"] = sum(1 for x in queue_data["queue"] if not x.get("instagram_media_id"))
         queue_data["posted_items"] = sum(1 for x in queue_data["queue"] if x.get("instagram_media_id"))
-        queue_data["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
-
         save_queue_data(queue_data)
+
+        # Send Telegram notification ping
+        try:
+            sys.path.append(str(REPO_ROOT / "scripts"))
+            from telegram_notifier import notify_published
+            notify_published(
+                platform="Instagram",
+                channel=f"@{getattr(cl, 'username', 'sitcomvaultdaily')}",
+                title=next_item.get("title", ""),
+                url=reel_url,
+                queue_index=next_item.get("queue_index")
+            )
+        except Exception as tel_err:
+            print(f"[TELEGRAM] Notice: ping skipped ({tel_err})")
 
         # Dump updated session
         cl.dump_settings(str(SESSION_FILE))
@@ -628,6 +640,19 @@ def post_next_reel(cl: Client = None, target_index: int = None) -> bool:
         next_item["status"] = "failed"
         next_item["error"] = str(e)
         save_queue_data(queue_data)
+
+        try:
+            sys.path.append(str(REPO_ROOT / "scripts"))
+            from telegram_notifier import notify_error
+            notify_error(
+                platform="Instagram",
+                channel="@sitcomvaultdaily",
+                error_msg=str(e),
+                title=next_item.get("title", "")
+            )
+        except Exception:
+            pass
+
         return False
 
 

@@ -349,6 +349,20 @@ def main():
         log(f"Updated queue file: {queue_file}")
         log(f"[ALL DONE] {cfg['name']} Reel published: {yt_url}")
 
+        # Send Telegram notification ping
+        try:
+            sys.path.append(str(ROOT / "scripts"))
+            from telegram_notifier import notify_published
+            notify_published(
+                platform="YouTube",
+                channel=f"{cfg['name']} ({cfg['handle']})",
+                title=next_item.get("title", ""),
+                url=yt_url,
+                queue_index=next_item.get("index", next_item.get("queue_index"))
+            )
+        except Exception as tel_err:
+            log(f"[TELEGRAM] Notice: ping skipped ({tel_err})")
+
         # Commit and push in GitHub Actions
         commit_msg = f"chore(youtube): publish {cfg['name']} short #{next_item.get('index', 1)} ({vid_id})"
         commit_and_push_queue(queue_file, commit_msg)

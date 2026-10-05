@@ -49,6 +49,8 @@ jobs:
         env:
           YOUTUBE_TOKEN_ASSET_VAULT: ${{ secrets.YOUTUBE_TOKEN_ASSET_VAULT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             python scripts/youtube_cloud_publisher.py --channel asset_vault --dry-run

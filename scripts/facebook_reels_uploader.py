@@ -287,10 +287,36 @@ def post_facebook_reel(target_index: int = None) -> bool:
             json.dump(queue_data, f, indent=2, ensure_ascii=False)
 
         print(f"[FB QUEUE] Saved Facebook upload details for Reel #{target_item.get('queue_index')} to queue!")
+
+        # Send Telegram notification ping
+        try:
+            sys.path.append(str(REPO_ROOT / "scripts"))
+            from telegram_notifier import notify_published
+            notify_published(
+                platform="Facebook",
+                channel="Sitcom Vault (Facebook Page)",
+                title=target_item.get("title", ""),
+                url=result["url"],
+                queue_index=target_item.get("queue_index")
+            )
+        except Exception as tel_err:
+            print(f"[TELEGRAM] Notice: ping skipped ({tel_err})")
+
         return True
 
     except Exception as e:
         print(f"[FB UPLOAD ERROR] {e}")
+        try:
+            sys.path.append(str(REPO_ROOT / "scripts"))
+            from telegram_notifier import notify_error
+            notify_error(
+                platform="Facebook",
+                channel="Sitcom Vault (Facebook Page)",
+                error_msg=str(e),
+                title=target_item.get("title", "") if target_item else ""
+            )
+        except Exception:
+            pass
         return False
 
 

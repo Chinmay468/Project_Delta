@@ -274,7 +274,10 @@ def main():
         q_data = json.load(f)
 
     queue = q_data.get("queue", [])
-    pending = [q for q in queue if q.get("status") in ["pending", "ready_to_schedule"]]
+    if args.channel == "sitcom_vault":
+        pending = [q for q in queue if not q.get("youtube_id") and not q.get("published_at")]
+    else:
+        pending = [q for q in queue if q.get("status") in ["pending", "ready_to_schedule"]]
 
     if args.status or (not args.post_next and not args.dry_run):
         print(f"\n{'='*60}")

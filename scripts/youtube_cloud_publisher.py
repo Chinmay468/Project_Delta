@@ -210,15 +210,50 @@ def commit_and_push_queue(queue_file, commit_msg):
     subprocess.run(["git", "push", "origin", "main"], check=True)
     log("Queue state pushed to GitHub successfully.")
 
+def delete_scheduled_videos(youtube):
+    log("Fetching all scheduled/private videos on channel...")
+    ch = youtube.channels().list(mine=True, part="contentDetails").execute()
+    uploads_playlist_id = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    playlist_items = youtube.playlistItems().list(part="snippet,status", playlistId=uploads_playlist_id, maxResults=50).execute()
+    deleted_count = 0
+    for item in playlist_items.get("items", []):
+        vid_id = item["snippet"]["resourceId"]["videoId"]
+        title = item["snippet"]["title"]
+        status_res = youtube.videos().list(part="status", id=vid_id).execute()
+        if not status_res.get("items"):
+            continue
+        v_status = status_res["items"][0]["status"]
+        privacy = v_status.get("privacyStatus")
+        publish_at = v_status.get("publishAt")
+
+        if publish_at or privacy == "private":
+            log(f"Deleting scheduled video: {vid_id} | Scheduled: {publish_at} | Title: {title}")
+            try:
+                youtube.videos().delete(id=vid_id).execute()
+                deleted_count += 1
+                log(f"Deleted video {vid_id}")
+            except Exception as e:
+                log(f"Failed to delete {vid_id}: {e}")
+
+    log(f"[DELETE COMPLETE] Total scheduled videos deleted: {deleted_count}")
+
 def main():
     parser = argparse.ArgumentParser(description="YouTube Cloud Daily Publisher")
     parser.add_argument("--channel", choices=["just_nature", "asset_vault"], default="just_nature", help="Channel key")
     parser.add_argument("--post-next", action="store_true", help="Post the next scheduled video")
+    parser.add_argument("--delete-scheduled", action="store_true", help="Delete all scheduled private videos on the channel")
     parser.add_argument("--status", action="store_true", help="Show queue status")
     parser.add_argument("--dry-run", action="store_true", help="Simulate without uploading")
     args = parser.parse_args()
 
     cfg = CHANNEL_CONFIGS[args.channel]
+
+    if args.delete_scheduled:
+        creds = get_credentials(cfg)
+        youtube = build("youtube", "v3", credentials=creds)
+        delete_scheduled_videos(youtube)
+        return
     queue_file = cfg["queue_file"]
 
     if not queue_file.exists():

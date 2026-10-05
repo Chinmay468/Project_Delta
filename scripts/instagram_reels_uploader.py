@@ -501,44 +501,13 @@ def resolve_video_path(item: dict) -> Path | None:
 
 def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnail: Path = None):
     """
-    Uploads a Reel to Instagram and automatically cross-posts to Facebook.
-    Tries explicit Facebook Page destination first, then auto-detection,
-    and falls back safely to Instagram-only if Facebook cross-posting encounters an error.
+    Uploads a Reel to Instagram and automatically cross-posts to Facebook using
+    the verified destination resolved from Meta Accounts Center.
+    Falls back safely to Instagram-only if Facebook cross-posting fails.
     """
-    fb_page_id = os.environ.get("FB_PAGE_ID") or os.environ.get("FB_DESTINATION_ID") or "61595194282867"
-
-    # Build Reel-specific cross-posting extra data
-    fb_reel_data = {}
-    if fb_page_id:
-        try:
-            fb_reel_data = cl.clip_share_to_fb_extra_data(
-                config={"share_to_facebook": "1"},
-                destination_id=str(fb_page_id),
-                destination_type="PAGE"
-            )
-        except Exception as e:
-            print(f"[CROSSPOST] Notice: Could not build clip_share_to_fb_extra_data: {e}")
-
-    # Attempt 1: Explicit Facebook Page destination with Reels cross-posting data
-    if fb_page_id:
-        try:
-            print(f"[CROSSPOST] Uploading Reel with Facebook Page cross-posting (Page ID: {fb_page_id})...")
-            return cl.clip_upload(
-                path=path,
-                caption=caption,
-                thumbnail=thumbnail,
-                show_preview_in_feed=True,
-                share_to_facebook=True,
-                fb_destination_id=str(fb_page_id),
-                fb_destination_type="PAGE",
-                extra_data=fb_reel_data,
-            )
-        except Exception as fb_err:
-            print(f"[CROSSPOST] Warning: Page-specific cross-post failed ({fb_err}). Trying auto-destination...")
-
-    # Attempt 2: Auto-detected Facebook destination
+    # Attempt 1: Auto-detected Facebook destination from Meta Accounts Center
     try:
-        print("[CROSSPOST] Attempting upload with auto-detected Facebook destination...")
+        print("[CROSSPOST] Uploading Reel with Meta Accounts Center Facebook cross-posting...")
         return cl.clip_upload(
             path=path,
             caption=caption,
@@ -547,9 +516,9 @@ def upload_clip_with_fb_crosspost(cl: Client, path: Path, caption: str, thumbnai
             share_to_facebook=True,
         )
     except Exception as auto_err:
-        print(f"[CROSSPOST] Warning: Auto Facebook cross-post failed ({auto_err}). Falling back to Instagram-only...")
+        print(f"[CROSSPOST] Warning: Facebook cross-post failed ({auto_err}). Falling back to Instagram-only...")
 
-    # Attempt 3: Standard Instagram clip upload (no Facebook cross-post)
+    # Attempt 2: Standard Instagram clip upload (no Facebook cross-post)
     try:
         return cl.clip_upload(
             path=path,

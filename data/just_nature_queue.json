@@ -2,7 +2,7 @@
   "channel": "@just.nature46",
   "channel_id": "UC_q-3rJiSjslro_sIUUNI4jA",
   "total_items": 56,
-  "posted_items": 7,
+  "posted_items": 4,
   "pending_items": 42,
   "queue": [
     {
@@ -377,9 +377,10 @@
       ],
       "pillar": "Fairytale Alpine Villages",
       "scheduled_time": "2026-10-07T18:00:00Z",
-      "status": "posted",
-      "youtube_id": "pqwbkyxpOnw",
-      "youtube_url": "https://www.youtube.com/shorts/pqwbkyxpOnw"
+      "status": "user_deleted",
+      "youtube_id": null,
+      "youtube_url": null,
+      "note": "Deleted by user request"
     },
     {
       "index": 13,
@@ -408,9 +409,10 @@
       ],
       "pillar": "Fairytale Alpine Villages",
       "scheduled_time": "2026-10-11T18:00:00Z",
-      "status": "posted",
-      "youtube_id": "t7ISvdjkDcU",
-      "youtube_url": "https://www.youtube.com/shorts/t7ISvdjkDcU"
+      "status": "user_deleted",
+      "youtube_id": null,
+      "youtube_url": null,
+      "note": "Deleted by user request"
     },
     {
       "index": 14,
@@ -504,9 +506,10 @@
       ],
       "pillar": "Fairytale Alpine Villages & Peaks",
       "scheduled_time": "2026-10-13T18:00:00Z",
-      "status": "posted",
-      "youtube_id": "AJLW0Dxqr_M",
-      "youtube_url": "https://www.youtube.com/shorts/AJLW0Dxqr_M"
+      "status": "user_deleted",
+      "youtube_id": null,
+      "youtube_url": null,
+      "note": "Deleted by user request"
     },
     {
       "index": 17,

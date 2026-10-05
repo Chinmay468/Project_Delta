@@ -2,7 +2,7 @@
   "channel": "@just.nature46",
   "channel_id": "UC_q-3rJiSjslro_sIUUNI4jA",
   "total_items": 56,
-  "posted_items": 8,
+  "posted_items": 7,
   "pending_items": 42,
   "queue": [
     {
@@ -345,9 +345,10 @@
       ],
       "pillar": "Fairytale Alpine Villages",
       "scheduled_time": "2026-10-06T18:00:00Z",
-      "status": "posted",
-      "youtube_id": "O_23BL2I1OU",
-      "youtube_url": "https://www.youtube.com/shorts/O_23BL2I1OU"
+      "status": "user_deleted",
+      "youtube_id": null,
+      "youtube_url": null,
+      "note": "Deleted by user request"
     },
     {
       "index": 12,

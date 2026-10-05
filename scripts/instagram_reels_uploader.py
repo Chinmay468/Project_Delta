@@ -703,6 +703,19 @@ def show_status():
             user_id = getattr(cl, "user_id", None) or "N/A"
             print(f"  Account:     @{username} (User ID: {user_id})")
             print(f"  Session:     Valid ({SESSION_FILE})")
+
+            # Check linked Facebook destinations
+            try:
+                fb_dest = cl.media_share_to_fb_unified_destination()
+                print(f"  Facebook Destination (Unified): {fb_dest}")
+            except Exception as e:
+                print(f"  Facebook Destination (Unified): {e}")
+
+            try:
+                clip_dest = cl.clip_share_to_fb_destination()
+                print(f"  Facebook Reels Destination:     {clip_dest}")
+            except Exception as e:
+                print(f"  Facebook Reels Destination:     {e}")
         except Exception as e:
             print(f"  Session:     Saved, but re-login needed ({e})")
     else:

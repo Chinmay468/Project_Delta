@@ -3,7 +3,7 @@
   "total_items": 198,
   "pending_items": 193,
   "posted_items": 5,
-  "last_updated": "2026-10-06 00:22:01",
+  "last_updated": "2026-10-06 01:16:52",
   "queue": [
     {
       "queue_index": 1,
@@ -18,7 +18,9 @@
       "instagram_media_id": "3998378529874098698_58464985228",
       "instagram_code": "Dd9GBausboK",
       "instagram_url": "https://www.instagram.com/reel/Dd9GBausboK/",
-      "posted_at": "2026-10-01T14:12:25.354348"
+      "posted_at": "2026-10-01T14:12:25.354348",
+      "facebook_scheduled_for": "2026-10-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 2,
@@ -33,7 +35,9 @@
       "instagram_media_id": "3999102863039034811_58464985228",
       "instagram_code": "Dd_qt2jsHW7",
       "instagram_url": "https://www.instagram.com/reel/Dd_qt2jsHW7/",
-      "posted_at": "2026-10-02T14:11:30.282428"
+      "posted_at": "2026-10-02T14:11:30.282428",
+      "facebook_scheduled_for": "2026-10-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 3,
@@ -48,7 +52,9 @@
       "instagram_media_id": "3999914209892666102_58464985228",
       "instagram_code": "DeCjMgMsIr2",
       "instagram_url": "https://www.instagram.com/reel/DeCjMgMsIr2/",
-      "posted_at": "2026-10-03T22:33:46.977340"
+      "posted_at": "2026-10-03T22:33:46.977340",
+      "facebook_scheduled_for": "2026-10-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 4,
@@ -64,7 +70,9 @@
       "instagram_code": "DeGWWm5s9Ce",
       "instagram_url": "https://www.instagram.com/reel/DeGWWm5s9Ce/",
       "posted_at": "2026-10-05T04:28:14.445103",
-      "error": "login_required"
+      "error": "login_required",
+      "facebook_scheduled_for": "2026-10-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 5,
@@ -82,7 +90,9 @@
       "posted_at": "2026-10-05T18:43:28.824616",
       "youtube_id": "RjSO7OyvYOY",
       "youtube_url": "https://www.youtube.com/shorts/RjSO7OyvYOY",
-      "published_at": "2026-10-05T15:12:41Z"
+      "published_at": "2026-10-05T15:12:41Z",
+      "facebook_scheduled_for": "2026-10-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 6,
@@ -100,7 +110,9 @@
       "posted_at": null,
       "youtube_id": "dBjR00CcGMI",
       "youtube_url": "https://www.youtube.com/shorts/dBjR00CcGMI",
-      "published_at": "2026-10-05T14:28:33.770677"
+      "published_at": "2026-10-05T14:28:33.770677",
+      "facebook_scheduled_for": "2026-10-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 7,
@@ -115,7 +127,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 8,
@@ -130,7 +144,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 9,
@@ -145,7 +161,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 10,
@@ -160,7 +178,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 11,
@@ -175,7 +195,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 12,
@@ -190,7 +212,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 13,
@@ -205,7 +229,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 14,
@@ -220,7 +246,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 15,
@@ -235,7 +263,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 16,
@@ -250,7 +280,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 17,
@@ -265,7 +297,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 18,
@@ -280,7 +314,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 19,
@@ -295,7 +331,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 20,
@@ -310,7 +348,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 21,
@@ -325,7 +365,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 22,
@@ -340,7 +382,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 23,
@@ -355,7 +399,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 24,
@@ -370,7 +416,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-29 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 25,
@@ -385,7 +433,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-30 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 26,
@@ -400,7 +450,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-10-31 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 27,
@@ -415,7 +467,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 28,
@@ -430,7 +484,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 29,
@@ -445,7 +501,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 30,
@@ -460,7 +518,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 31,
@@ -475,7 +535,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 32,
@@ -490,7 +552,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 33,
@@ -505,7 +569,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 34,
@@ -520,7 +586,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 35,
@@ -535,7 +603,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 36,
@@ -550,7 +620,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 37,
@@ -565,7 +637,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 38,
@@ -580,7 +654,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 39,
@@ -595,7 +671,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 40,
@@ -610,7 +688,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 41,
@@ -625,7 +705,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 42,
@@ -640,7 +722,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 43,
@@ -655,7 +739,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 44,
@@ -670,7 +756,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 45,
@@ -685,7 +773,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 46,
@@ -700,7 +790,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 47,
@@ -715,7 +807,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 48,
@@ -730,7 +824,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 49,
@@ -745,7 +841,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 50,
@@ -760,7 +858,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 51,
@@ -775,7 +875,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 52,
@@ -790,7 +892,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 53,
@@ -805,7 +909,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 54,
@@ -820,7 +926,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 55,
@@ -835,7 +943,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-29 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 56,
@@ -850,7 +960,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-11-30 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 57,
@@ -865,7 +977,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 58,
@@ -880,7 +994,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 59,
@@ -895,7 +1011,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 60,
@@ -910,7 +1028,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 61,
@@ -925,7 +1045,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 62,
@@ -940,7 +1062,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 63,
@@ -955,7 +1079,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 64,
@@ -970,7 +1096,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 65,
@@ -985,7 +1113,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 66,
@@ -1000,7 +1130,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 67,
@@ -1015,7 +1147,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 68,
@@ -1030,7 +1164,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 69,
@@ -1045,7 +1181,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 70,
@@ -1060,7 +1198,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 71,
@@ -1075,7 +1215,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 72,
@@ -1090,7 +1232,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 73,
@@ -1105,7 +1249,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 74,
@@ -1120,7 +1266,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 75,
@@ -1135,7 +1283,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 76,
@@ -1150,7 +1300,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 77,
@@ -1165,7 +1317,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 78,
@@ -1180,7 +1334,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 79,
@@ -1195,7 +1351,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 80,
@@ -1210,7 +1368,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 81,
@@ -1225,7 +1385,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 82,
@@ -1240,7 +1402,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 83,
@@ -1255,7 +1419,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 84,
@@ -1270,7 +1436,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 85,
@@ -1285,7 +1453,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-29 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 86,
@@ -1300,7 +1470,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-30 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 87,
@@ -1315,7 +1487,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2026-12-31 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 88,
@@ -1330,7 +1504,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 89,
@@ -1345,7 +1521,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 90,
@@ -1360,7 +1538,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 91,
@@ -1375,7 +1555,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 92,
@@ -1390,7 +1572,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 93,
@@ -1405,7 +1589,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 94,
@@ -1420,7 +1606,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 95,
@@ -1435,7 +1623,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 96,
@@ -1450,7 +1640,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 97,
@@ -1465,7 +1657,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 98,
@@ -1480,7 +1674,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 99,
@@ -1495,7 +1691,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 100,
@@ -1510,7 +1708,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 101,
@@ -1525,7 +1725,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 102,
@@ -1540,7 +1742,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 103,
@@ -1555,7 +1759,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 104,
@@ -1570,7 +1776,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 105,
@@ -1585,7 +1793,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 106,
@@ -1600,7 +1810,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 107,
@@ -1615,7 +1827,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 108,
@@ -1630,7 +1844,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 109,
@@ -1645,7 +1861,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 110,
@@ -1660,7 +1878,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 111,
@@ -1675,7 +1895,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 112,
@@ -1690,7 +1912,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 113,
@@ -1705,7 +1929,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 114,
@@ -1720,7 +1946,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 115,
@@ -1735,7 +1963,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 116,
@@ -1750,7 +1980,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-29 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 117,
@@ -1765,7 +1997,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-30 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 118,
@@ -1780,7 +2014,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-01-31 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 119,
@@ -1795,7 +2031,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 120,
@@ -1810,7 +2048,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 121,
@@ -1825,7 +2065,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 122,
@@ -1840,7 +2082,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 123,
@@ -1855,7 +2099,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 124,
@@ -1870,7 +2116,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 125,
@@ -1885,7 +2133,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 126,
@@ -1900,7 +2150,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 127,
@@ -1915,7 +2167,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 128,
@@ -1930,7 +2184,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 129,
@@ -1945,7 +2201,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 130,
@@ -1960,7 +2218,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 131,
@@ -1975,7 +2235,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 132,
@@ -1990,7 +2252,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 133,
@@ -2005,7 +2269,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 134,
@@ -2020,7 +2286,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 135,
@@ -2035,7 +2303,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 136,
@@ -2050,7 +2320,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 137,
@@ -2065,7 +2337,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 138,
@@ -2080,7 +2354,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 139,
@@ -2095,7 +2371,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 140,
@@ -2110,7 +2388,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 141,
@@ -2125,7 +2405,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 142,
@@ -2140,7 +2422,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 143,
@@ -2155,7 +2439,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 144,
@@ -2170,7 +2456,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 145,
@@ -2185,7 +2473,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 146,
@@ -2200,7 +2490,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-02-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 147,
@@ -2215,7 +2507,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 148,
@@ -2230,7 +2524,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 149,
@@ -2245,7 +2541,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 150,
@@ -2260,7 +2558,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 151,
@@ -2275,7 +2575,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 152,
@@ -2290,7 +2592,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 153,
@@ -2305,7 +2609,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 154,
@@ -2320,7 +2626,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 155,
@@ -2335,7 +2643,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 156,
@@ -2350,7 +2660,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 157,
@@ -2365,7 +2677,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 158,
@@ -2380,7 +2694,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 159,
@@ -2395,7 +2711,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 160,
@@ -2410,7 +2728,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 161,
@@ -2425,7 +2745,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 162,
@@ -2440,7 +2762,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 163,
@@ -2455,7 +2779,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 164,
@@ -2470,7 +2796,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 165,
@@ -2485,7 +2813,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 166,
@@ -2500,7 +2830,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 167,
@@ -2515,7 +2847,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-21 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 168,
@@ -2530,7 +2864,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-22 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 169,
@@ -2545,7 +2881,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-23 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 170,
@@ -2560,7 +2898,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-24 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 171,
@@ -2575,7 +2915,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-25 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 172,
@@ -2590,7 +2932,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-26 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 173,
@@ -2605,7 +2949,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-27 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 174,
@@ -2620,7 +2966,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-28 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 175,
@@ -2635,7 +2983,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-29 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 176,
@@ -2650,7 +3000,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-30 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 177,
@@ -2665,7 +3017,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-03-31 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 178,
@@ -2680,7 +3034,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-01 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 179,
@@ -2695,7 +3051,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-02 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 180,
@@ -2710,7 +3068,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-03 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 181,
@@ -2725,7 +3085,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-04 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 182,
@@ -2740,7 +3102,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-05 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 183,
@@ -2755,7 +3119,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-06 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 184,
@@ -2770,7 +3136,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-07 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 185,
@@ -2785,7 +3153,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-08 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 186,
@@ -2800,7 +3170,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-09 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 187,
@@ -2815,7 +3187,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-10 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 188,
@@ -2830,7 +3204,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-11 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 189,
@@ -2845,7 +3221,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-12 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 190,
@@ -2860,7 +3238,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-13 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 191,
@@ -2875,7 +3255,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-14 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 192,
@@ -2890,7 +3272,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-15 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 193,
@@ -2905,7 +3289,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-16 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 194,
@@ -2920,7 +3306,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-17 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 195,
@@ -2935,7 +3323,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-18 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 196,
@@ -2950,7 +3340,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-19 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 197,
@@ -2965,7 +3357,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-20 19:30",
+      "facebook_status": "pending"
     },
     {
       "queue_index": 198,
@@ -2980,7 +3374,9 @@
       "instagram_media_id": null,
       "instagram_code": null,
       "instagram_url": null,
-      "posted_at": null
+      "posted_at": null,
+      "facebook_scheduled_for": "2027-04-21 19:30",
+      "facebook_status": "pending"
     }
   ]
 }

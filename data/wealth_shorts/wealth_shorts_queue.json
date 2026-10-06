@@ -100,11 +100,14 @@
       "local_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_04_The_Advice_You_Didn't_Know_You_Need_En_9mCMJsPI.mp4",
       "thumbnail_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_04_The_Advice_You_Didn't_Know_You_Need_En_9mCMJsPI.jpg",
       "duration": 30.0,
-      "status": "pending",
+      "status": "posted",
       "channel": "@theassetvault",
       "created_at": "2026-10-03T10:49:37",
       "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
-      "filename": "asset_vault_04_The_Advice_You_Didn't_Know_You_Need_En_9mCMJsPI.mp4"
+      "filename": "asset_vault_04_The_Advice_You_Didn't_Know_You_Need_En_9mCMJsPI.mp4",
+      "youtube_id": "nyEnT9WZVm8",
+      "youtube_url": "https://www.youtube.com/shorts/nyEnT9WZVm8",
+      "published_at": "2026-10-06T14:14:01.795184"
     },
     {
       "index": 5,
@@ -997,6 +1000,6 @@
   ],
   "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
   "scheduled_items": 10,
-  "pending_items": 38,
-  "posted_items": 3
+  "pending_items": 37,
+  "posted_items": 4
 }

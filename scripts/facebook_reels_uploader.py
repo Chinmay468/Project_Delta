@@ -19,6 +19,7 @@ import sys
 import json
 import time
 import argparse
+from pathlib import Path
 try:
     from dotenv import dotenv_values
 except ImportError:

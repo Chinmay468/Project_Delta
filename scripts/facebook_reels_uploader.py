@@ -19,8 +19,12 @@ import sys
 import json
 import time
 import argparse
-from pathlib import Path
-from dotenv import dotenv_values
+try:
+    from dotenv import dotenv_values
+except ImportError:
+    def dotenv_values(path):
+        return {}
+
 import requests
 
 # Force UTF-8 on Windows console

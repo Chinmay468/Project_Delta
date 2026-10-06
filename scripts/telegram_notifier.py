@@ -13,8 +13,12 @@ import os
 import sys
 from datetime import datetime
 import requests
-from pathlib import Path
-from dotenv import dotenv_values
+try:
+    from dotenv import dotenv_values
+except ImportError:
+    def dotenv_values(path):
+        return {}
+
 
 # Force UTF-8 on Windows console
 if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):

@@ -134,66 +134,75 @@ def upload_reel_to_facebook_page(page_id: str, access_token: str, video_path: Pa
     file_size = video_path.stat().st_size
     print(f"[FB UPLOAD] Starting upload of '{video_path.name}' ({file_size / (1024*1024):.1f} MB)...")
 
-    # PHASE 1: Initialize upload session
-    init_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}/video_reels"
-    init_params = {
-        "upload_phase": "start",
-        "access_token": access_token
-    }
-    print("[FB UPLOAD] Phase 1: Requesting upload session from Meta Video Reels API...")
-    init_resp = requests.post(init_url, data=init_params, timeout=30)
-    init_data = init_resp.json()
+    try:
+        # PHASE 1: Initialize upload session
+        init_url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{page_id}/video_reels"
+        init_params = {
+            "upload_phase": "start",
+            "access_token": access_token
+        }
+        print("[FB UPLOAD] Phase 1: Requesting upload session from Meta Video Reels API...")
+        init_resp = requests.post(init_url, data=init_params, timeout=30)
+        init_data = init_resp.json()
 
-    if init_resp.status_code != 200 or "video_id" not in init_data:
-        err = init_data.get("error", {}).get("message", init_resp.text)
-        print(f"[FB UPLOAD] Warning: /video_reels init failed ({err}). Trying standard /videos fallback...")
+        if init_resp.status_code != 200 or "video_id" not in init_data:
+            err = init_data.get("error", {}).get("message", init_resp.text)
+            print(f"[FB UPLOAD] Warning: /video_reels init failed ({err}). Trying standard /videos fallback...")
+            return _fallback_upload_video(page_id, access_token, video_path, caption)
+
+        video_id = init_data["video_id"]
+        upload_url = init_data["upload_url"]
+        print(f"[FB UPLOAD] Session created! Meta Video ID: {video_id}")
+
+        # PHASE 2: Upload binary bytes
+        print("[FB UPLOAD] Phase 2: Uploading video binary data...")
+        upload_headers = {
+            "Authorization": f"OAuth {access_token}",
+            "offset": "0",
+            "file_size": str(file_size),
+            "Content-Type": "application/octet-stream",
+            "Content-Length": str(file_size),
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
+        }
+        with open(video_path, "rb") as f:
+            video_bytes = f.read()
+
+        upload_resp = requests.post(upload_url, headers=upload_headers, data=video_bytes, timeout=180)
+
+        if upload_resp.status_code not in (200, 201):
+            raise RuntimeError(f"Binary upload failed ({upload_resp.status_code}): {upload_resp.text}")
+
+        print("[FB UPLOAD] Binary upload completed successfully!")
+
+        # PHASE 3: Finalize and Publish
+        print("[FB UPLOAD] Phase 3: Finalizing and publishing Reel...")
+        finish_params = {
+            "upload_phase": "finish",
+            "access_token": access_token,
+            "video_id": video_id,
+            "video_state": "PUBLISHED",
+            "description": caption
+        }
+        finish_resp = requests.post(init_url, data=finish_params, timeout=30)
+        finish_data = finish_resp.json()
+
+        if finish_resp.status_code != 200 or not finish_data.get("success", False):
+            err = finish_data.get("error", {}).get("message", finish_resp.text)
+            raise RuntimeError(f"Publishing failed ({finish_resp.status_code}): {err}")
+
+        fb_url = f"https://www.facebook.com/reel/{video_id}"
+        print(f"🎉 [FB SUCCESS] Reel is published to Facebook Page!")
+        print(f"   Video ID: {video_id}")
+        print(f"   URL:      {fb_url}")
+
+        return {
+            "video_id": video_id,
+            "url": fb_url,
+            "status": "published"
+        }
+    except Exception as e:
+        print(f"[FB UPLOAD] Reel API encountered an issue ({e}). Trying standard /videos fallback...")
         return _fallback_upload_video(page_id, access_token, video_path, caption)
-
-    video_id = init_data["video_id"]
-    upload_url = init_data["upload_url"]
-    print(f"[FB UPLOAD] Session created! Meta Video ID: {video_id}")
-
-    # PHASE 2: Upload binary bytes
-    print("[FB UPLOAD] Phase 2: Uploading video binary data...")
-    upload_headers = {
-        "Authorization": f"OAuth {access_token}",
-        "offset": "0",
-        "file_size": str(file_size)
-    }
-    with open(video_path, "rb") as f:
-        upload_resp = requests.post(upload_url, headers=upload_headers, data=f, timeout=120)
-
-    if upload_resp.status_code not in (200, 201):
-        raise RuntimeError(f"Binary upload failed ({upload_resp.status_code}): {upload_resp.text}")
-
-    print("[FB UPLOAD] Binary upload completed successfully!")
-
-    # PHASE 3: Finalize and Publish
-    print("[FB UPLOAD] Phase 3: Finalizing and publishing Reel...")
-    finish_params = {
-        "upload_phase": "finish",
-        "access_token": access_token,
-        "video_id": video_id,
-        "video_state": "PUBLISHED",
-        "description": caption
-    }
-    finish_resp = requests.post(init_url, data=finish_params, timeout=30)
-    finish_data = finish_resp.json()
-
-    if finish_resp.status_code != 200 or not finish_data.get("success", False):
-        err = finish_data.get("error", {}).get("message", finish_resp.text)
-        raise RuntimeError(f"Publishing failed ({finish_resp.status_code}): {err}")
-
-    fb_url = f"https://www.facebook.com/reel/{video_id}"
-    print(f"🎉 [FB SUCCESS] Reel is published to Facebook Page!")
-    print(f"   Video ID: {video_id}")
-    print(f"   URL:      {fb_url}")
-
-    return {
-        "video_id": video_id,
-        "url": fb_url,
-        "status": "published"
-    }
 
 
 def _fallback_upload_video(page_id: str, access_token: str, video_path: Path, caption: str) -> dict:

@@ -1,8 +1,8 @@
 {
   "channel": "@sitcomvaultdaily",
   "total_items": 198,
-  "pending_items": 192,
-  "posted_items": 6,
+  "pending_items": 191,
+  "posted_items": 7,
   "last_updated": "2026-10-06 01:16:52",
   "queue": [
     {
@@ -63,7 +63,10 @@
       "instagram_url": "https://www.instagram.com/reel/DeCjMgMsIr2/",
       "posted_at": "2026-10-03T22:33:46.977340",
       "facebook_scheduled_for": "2026-10-08 19:30",
-      "facebook_status": "pending"
+      "facebook_status": "pending",
+      "facebook_video_id": "1645170737621701",
+      "facebook_url": "https://www.facebook.com/reel/1645170737621701",
+      "facebook_posted_at": "2026-10-07T14:17:29"
     },
     {
       "queue_index": 4,
@@ -131,12 +134,12 @@
       "file_name": "diepvo8265_04_part1_Sheldon plays Scrabble with Hawking.mp4",
       "title": "[Part 1] Sheldon plays Scrabble with Hawking.🤣",
       "caption": "[PART 1/2] Sheldon plays Scrabble with Hawking.🤣 😂🍿\n\nSheldon is at it again! Wait until you see how this plays out in Part 2! 🤣\n\n💬 Part 2 drops tomorrow! What do you think happens next? Tell us below! 👇\n\n👉 Follow @sitcomvaultdaily for daily Big Bang Theory & comedy gold! 🍿\nDouble-tap if this made your day! ❤️\n\n•\n•\n•\n#thebigbangtheory #tbbt #sheldoncooper #bazinga #pennyandleonard #shamy #reels #reelsinstagram #comedyreels #sitcom #funnyreels #viralreels #explorepage #sitcomvaultdaily",
-      "status": "pending",
+      "status": "posted",
       "scheduled_for": "2026-10-07 19:30",
-      "instagram_media_id": null,
-      "instagram_code": null,
-      "instagram_url": null,
-      "posted_at": null,
+      "instagram_media_id": "4002729680157469601_58464985228",
+      "instagram_code": "DeMjW_Nsuuh",
+      "instagram_url": "https://www.instagram.com/reel/DeMjW_Nsuuh/",
+      "posted_at": "2026-10-07T14:17:18.360062",
       "facebook_scheduled_for": "2026-10-12 19:30",
       "facebook_status": "pending"
     },

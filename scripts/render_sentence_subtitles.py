@@ -1,8 +1,8 @@
 """
-Sentence-Level Subtitle Burner for Sitcom Shorts
-================================================
-Replaces rapid single-word flash captions with clean, readable sentence blocks.
-Covers the old flashing text area with a modern semi-transparent subtitle badge.
+Boxless Sentence-Level Subtitle Burner
+======================================
+Renders clean, readable sentence subtitles directly on the video WITHOUT any background box.
+Uses high-contrast text with a 4px black outline and shadow, lightly inpainting old single-word flashes.
 """
 
 import sys
@@ -17,7 +17,6 @@ SRC_VIDEO = Path(r"D:\Media\shorts\optimized\diepvo8265_02_part1_Sheldon stands 
 OUT_VIDEO = Path(r"D:\Media\shorts\optimized\diepvo8265_02_part1_Sheldon_sentences_20s.mp4")
 ARTIFACT_DIR = Path(r"C:\Users\VICTUS\.gemini\antigravity\brain\bf5840ea-6324-46df-aad6-d6e9b73c7abb")
 
-# Sentence timing within the 20-second clip
 SENTENCE_TIMINGS = [
     (0.0, 2.5, "Amy... Amy..."),
     (2.5, 5.0, "Angry Amy?"),
@@ -29,61 +28,47 @@ SENTENCE_TIMINGS = [
     (16.2, 19.8, "You were being rude to a national treasure!")
 ]
 
-def render_sentence_video(src_path: Path, out_path: Path):
-    print(f"[RENDER] Reading source video: {src_path}")
+def render_boxless_video(src_path: Path, out_path: Path, text_color=(255, 255, 255)):
+    print(f"[RENDER] Processing video: {src_path}")
     cap = cv2.VideoCapture(str(src_path))
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    print(f"[RENDER] Specs: {width}x{height} @ {fps:.1f} fps ({total_frames} frames)")
-
-    temp_video = src_path.parent / "temp_silent_sentences.mp4"
+    temp_video = src_path.parent / "temp_silent_nobox.mp4"
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(str(temp_video), fourcc, fps, (width, height))
 
-    # Pre-render subtitle overlays for each sentence
     try:
-        font = ImageFont.truetype("arialbd.ttf", 28)
+        font = ImageFont.truetype("arialbd.ttf", 31)
     except:
         font = ImageFont.load_default()
 
+    # Pre-render text overlays (NO BOX)
     pre_rendered = {}
     for start_t, end_t, text in SENTENCE_TIMINGS:
         bbox = font.getbbox(text)
         text_w = bbox[2] - bbox[0]
         text_h = bbox[3] - bbox[1]
 
-        box_w = max(text_w + 60, 440)
-        box_x1 = (width - box_w) // 2
-        box_x2 = (width + box_w) // 2
-        box_y1 = 740
-        box_y2 = 850
-
         overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
 
-        # Draw dark rounded badge covering the old flashing words completely
-        draw.rounded_rectangle(
-            [box_x1, box_y1, box_x2, box_y2],
-            radius=18,
-            fill=(14, 14, 18, 240),
-            outline=(255, 255, 255, 80),
-            width=2
-        )
+        x = (width - text_w) // 2
+        y = 770
 
-        text_x = (width - text_w) // 2
-        text_y = (box_y1 + box_y2 - text_h) // 2 - 3
-
-        # Shadow + crisp text
-        draw.text((text_x + 2, text_y + 2), text, font=font, fill=(0, 0, 0, 220))
-        draw.text((text_x, text_y), text, font=font, fill=(255, 255, 255, 255))
+        # Drop shadow + thick black outline (stroke) - NO RECTANGLE BOX
+        draw.text((x + 3, y + 3), text, font=font, fill=(0, 0, 0, 220))
+        draw.text((x, y), text, font=font, fill=text_color, stroke_width=4, stroke_fill=(0, 0, 0, 255))
 
         pre_rendered[text] = overlay
 
+    roi_y1, roi_y2 = 740, 850
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+
     frame_idx = 0
-    print("[RENDER] Rendering frames with clean sentence overlays...")
+    print("[RENDER] Applying inpaint and boxless sentence subtitles...")
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -97,7 +82,17 @@ def render_sentence_video(src_path: Path, out_path: Path):
                 break
 
         if active_text and active_text in pre_rendered:
-            # Composite overlay
+            # Light inpaint to remove the bright white core of old 1-word text
+            roi = frame[roi_y1:roi_y2, :]
+            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            mask = (gray > 210).astype(np.uint8) * 255
+            if np.any(mask):
+                mask_dil = cv2.dilate(mask, kernel, iterations=1)
+                full_mask = np.zeros((height, width), dtype=np.uint8)
+                full_mask[roi_y1:roi_y2, :] = mask_dil
+                frame = cv2.inpaint(frame, full_mask, inpaintRadius=4, flags=cv2.INPAINT_TELEA)
+
+            # Overlay clean sentence text
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             pil_img = Image.fromarray(frame_rgb)
             comp = Image.alpha_composite(pil_img.convert("RGBA"), pre_rendered[active_text])
@@ -110,9 +105,8 @@ def render_sentence_video(src_path: Path, out_path: Path):
 
     cap.release()
     writer.release()
-    print("[RENDER] Silent video render complete. Muxing original audio...")
+    print("[RENDER] Frame processing complete. Muxing audio...")
 
-    # Combine with original audio
     mux_cmd = [
         "ffmpeg", "-y",
         "-i", str(temp_video),
@@ -128,13 +122,13 @@ def render_sentence_video(src_path: Path, out_path: Path):
     if temp_video.exists():
         temp_video.unlink()
 
-    print(f"[SUCCESS] Sentence-subtitled video created: {out_path} ({out_path.stat().st_size / (1024*1024):.2f} MB)")
+    print(f"[SUCCESS] Boxless video created: {out_path} ({out_path.stat().st_size / (1024*1024):.2f} MB)")
 
-    # Copy to artifact dir for instant playback / review
+    # Copy to artifact dir
     dst_art = ARTIFACT_DIR / "sample_sentences_short_20s.mp4"
     import shutil
     shutil.copy2(out_path, dst_art)
-    print(f"📋 Copied to artifact directory: {dst_art}")
+    print(f"[COPIED] Artifact updated: {dst_art}")
 
 if __name__ == "__main__":
-    render_sentence_video(SRC_VIDEO, OUT_VIDEO)
+    render_boxless_video(SRC_VIDEO, OUT_VIDEO)

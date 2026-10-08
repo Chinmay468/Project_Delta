@@ -58,7 +58,7 @@ CHANNEL_CONFIGS = {
         "token_env": "YOUTUBE_TOKEN_SITCOM_VAULT",
         "local_token": CONFIG_DIR / "token_sitcom.json",
         "mega_folder": "https://mega.nz/folder/egwTiY4L#4K5dT03RmF_5KkU8mgFU-g",
-        "local_media_dirs": [Path(r"D:\Media\shorts\diepvo8265_reels"), Path(r"D:\Media\shorts\himym")]
+        "local_media_dirs": [Path(r"D:\Media\shorts\optimized"), Path(r"D:\Media\shorts\diepvo8265_reels"), Path(r"D:\Media\shorts\himym")]
     }
 }
 
@@ -106,6 +106,12 @@ def download_from_mega(mega_folder, filename, download_dir, item=None, cfg=None)
     clean_name = None
     if filename:
         clean_name = Path(str(filename).replace("\\", "/")).name
+
+    if item and item.get("local_path"):
+        lp = Path(item["local_path"])
+        if lp.exists() and lp.stat().st_size > 0:
+            log(f"Using direct local file: {lp}")
+            return lp
 
     # Check if file exists locally in channel's specific media dirs first (for local runs on Windows)
     local_dirs = (cfg.get("local_media_dirs") if cfg else None) or [
@@ -387,6 +393,35 @@ def main():
     # Download file
     temp_dir = ROOT / "media_downloads"
     video_path = download_from_mega(mega_folder, filename, temp_dir, item=next_item, cfg=cfg)
+
+    # Check if a high-retention trim window is defined for this clip
+    trim_start = next_item.get("trim_start")
+    trim_end = next_item.get("trim_end")
+    if trim_start is not None and trim_end is not None:
+        duration = float(trim_end) - float(trim_start)
+        log(f"[TRIM] High-retention trim specified: {trim_start}s -> {trim_end}s ({duration:.1f}s total duration)")
+        trimmed_name = f"{video_path.stem}_trim_{int(trim_start)}_{int(trim_end)}.mp4"
+        trimmed_file = temp_dir / trimmed_name
+        if not trimmed_file.exists():
+            trim_cmd = [
+                "ffmpeg", "-y",
+                "-ss", str(trim_start),
+                "-to", str(trim_end),
+                "-i", str(video_path),
+                "-c:v", "libx264",
+                "-c:a", "aac",
+                "-avoid_negative_ts", "make_zero",
+                str(trimmed_file)
+            ]
+            res = subprocess.run(trim_cmd, capture_output=True, text=True)
+            if res.returncode == 0 and trimmed_file.exists():
+                log(f"[TRIM] Optimization complete! Using trimmed file: {trimmed_file}")
+                video_path = trimmed_file
+            else:
+                log(f"[TRIM] Warning: Trim command failed, proceeding with original: {res.stderr[-150:]}")
+        else:
+            log(f"[TRIM] Using pre-trimmed file: {trimmed_file}")
+            video_path = trimmed_file
 
     # Upload
     vid_id = upload_short(youtube, video_path, next_item, cfg, dry_run=args.dry_run)

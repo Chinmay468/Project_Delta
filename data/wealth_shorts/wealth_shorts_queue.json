@@ -154,11 +154,14 @@
       "local_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_06_Change_Your_Life_In_50_Seconds_✨_ygVT72StvUk.mp4",
       "thumbnail_path": "D:\\Media\\shorts\\the_asset_vault\\asset_vault_06_Change_Your_Life_In_50_Seconds_✨_ygVT72StvUk.jpg",
       "duration": 30.0,
-      "status": "pending",
+      "status": "posted",
       "channel": "@theassetvault",
       "created_at": "2026-10-03T10:49:38",
       "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
-      "filename": "asset_vault_06_Change_Your_Life_In_50_Seconds_✨_ygVT72StvUk.mp4"
+      "filename": "asset_vault_06_Change_Your_Life_In_50_Seconds_✨_ygVT72StvUk.mp4",
+      "youtube_id": "_wCeUjvzglY",
+      "youtube_url": "https://www.youtube.com/shorts/_wCeUjvzglY",
+      "published_at": "2026-10-08T14:14:30.784706"
     },
     {
       "index": 7,
@@ -1003,6 +1006,6 @@
   ],
   "mega_folder": "https://mega.nz/folder/PkJCxZiK#Hifq4nNRbUKvVWOzTnNXIQ",
   "scheduled_items": 10,
-  "pending_items": 36,
-  "posted_items": 5
+  "pending_items": 35,
+  "posted_items": 6
 }

@@ -397,7 +397,7 @@ def main():
     # Check if a high-retention trim window is defined for this clip
     trim_start = next_item.get("trim_start")
     trim_end = next_item.get("trim_end")
-    if trim_start is not None and trim_end is not None:
+    if trim_start is not None and trim_end is not None and "_sentences_" not in video_path.name:
         duration = float(trim_end) - float(trim_start)
         log(f"[TRIM] High-retention trim specified: {trim_start}s -> {trim_end}s ({duration:.1f}s total duration)")
         trimmed_name = f"{video_path.stem}_trim_{int(trim_start)}_{int(trim_end)}.mp4"

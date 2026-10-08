@@ -9,6 +9,7 @@ if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import os
+import re
 import time
 import json
 import argparse
@@ -172,15 +173,77 @@ def download_from_mega(mega_folder, filename, download_dir, item=None, cfg=None)
 
     raise FileNotFoundError(f"Could not download or find video for item: {display_name}")
 
+def clean_youtube_metadata(item, cfg):
+    """
+    Cleans and optimizes titles, descriptions, and tags for YouTube Shorts.
+    - Removes [Part 1] / [Part 2] prefixes to prevent swipe-aways
+    - Ensures #Shorts is present in the title
+    - Purges Instagram hashtags (#reels, #explorepage) and jargon ('double-tap')
+    - Adds YouTube-native channel CTAs and targeted SEO tags
+    """
+    raw_title = item.get("youtube_title") or item.get("title", "")
+    
+    # Strip [Part X], (Part X), Part X:, etc.
+    cleaned_title = re.sub(r'^\s*(\[|\()?\s*part\s*\d+(\s*/\s*\d+)?\s*(\]|\))?\s*[:\-\.]?\s*', '', raw_title, flags=re.IGNORECASE)
+    cleaned_title = re.sub(r'\s+', ' ', cleaned_title).strip()
+    
+    # Ensure #Shorts is present in title
+    if "#shorts" not in cleaned_title.lower():
+        if len(cleaned_title) + len(" #Shorts") <= 95:
+            cleaned_title = f"{cleaned_title} #Shorts"
+
+    raw_desc = item.get("youtube_description") or item.get("description") or item.get("caption") or ""
+
+    if cfg["name"] == "Sitcom Vault Daily":
+        desc_hook = cleaned_title.replace("#Shorts", "").strip()
+        clean_desc = (
+            f"{desc_hook}\n\n"
+            "Classic comedy gold from The Big Bang Theory! Nobody delivers punchlines like Sheldon Cooper.\n\n"
+            "🔔 Subscribe to @SitcomVaultDaily for daily comedy sitcom shorts & funny TV moments!\n"
+            "💬 Which sitcom scene should we feature next? Drop a comment below!\n\n"
+            "#Shorts #TheBigBangTheory #TBBT #SheldonCooper #Sitcom #Comedy #FunnyMoments"
+        )
+        tags = [
+            "Shorts", "The Big Bang Theory", "Sheldon Cooper", "Big Bang Theory Funny Moments",
+            "Sitcom", "Comedy", "TBBT", "Penny and Leonard", "Shamy", "Jim Parsons",
+            "Sitcom Vault Daily", "Funny TV Clips"
+        ]
+    elif cfg["name"] == "Just Nature":
+        clean_desc = (
+            f"{cleaned_title}\n\n"
+            "Breathtaking scenery and peaceful nature views from around the world.\n\n"
+            "🔔 Subscribe to @just.nature46 for daily relaxing 4K nature escapes!\n"
+            "📍 Save this for your travel bucket list!\n\n"
+            "#Shorts #Nature #RelaxingNature #4KNature #Travel #Scenery"
+        )
+        tags = ["Shorts", "Nature", "Relaxing Nature", "4K Nature", "Travel", "Scenery", "Earth", "Landscape"]
+    elif cfg["name"] == "The Asset Vault":
+        clean_desc = (
+            f"{cleaned_title}\n\n"
+            "Daily financial wisdom, wealth-building strategies, and success mindsets.\n\n"
+            "🔔 Subscribe to @theassetvault000 for daily wealth & investing shorts!\n\n"
+            "#Shorts #Finance #Wealth #Money #Investing #Business #Success"
+        )
+        tags = ["Shorts", "Finance", "Wealth", "Money", "Investing", "Business", "Success", "Financial Freedom"]
+    else:
+        clean_desc = re.sub(r'#(reels|reelsinstagram|explorepage|viralreels|comedyreels)\w*', '', raw_desc, flags=re.IGNORECASE)
+        clean_desc = re.sub(r'(?i)double-tap[^\n]*', '', clean_desc).strip()
+        tags = ["Shorts", "Viral", "YouTubeShorts"]
+
+    return cleaned_title[:100], clean_desc, tags
+
 def upload_short(youtube, video_path, item, cfg, dry_run=False):
-    log(f"Preparing upload for: {item['title']}")
-    log(f"File: {video_path}")
+    title, description, tags = clean_youtube_metadata(item, cfg)
+    log(f"Preparing upload for YouTube:")
+    log(f"  Optimized Title: {title}")
+    log(f"  Tags: {tags[:5]}...")
+    log(f"  File: {video_path}")
 
     body = {
         "snippet": {
-            "title": item["title"][:100],
-            "description": item.get("description") or item.get("caption") or item.get("title", ""),
-            "tags": item.get("tags") or ["Shorts", "Sitcom", "TheBigBangTheory", "Funny"],
+            "title": title,
+            "description": description,
+            "tags": tags,
             "categoryId": cfg["category_id"],
             "defaultLanguage": "en"
         },

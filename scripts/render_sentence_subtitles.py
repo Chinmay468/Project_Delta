@@ -40,54 +40,99 @@ def render_boxless_video(src_path: Path, out_path: Path, text_color=(255, 255, 2
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    print(f"[RENDER] Reading {total_frames} frames into memory...")
+    frames = []
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frames.append(frame)
+    cap.release()
+
     temp_video = src_path.parent / "temp_silent_lower.mp4"
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     writer = cv2.VideoWriter(str(temp_video), fourcc, fps, (width, height))
 
     try:
-        font = ImageFont.truetype("arialbd.ttf", 31)
+        font = ImageFont.truetype("arialbd.ttf", 28)
     except:
         font = ImageFont.load_default()
 
-    # Pre-render text overlays at lowered Y position (NO BOX)
+    import textwrap
+
+    # Pre-render text overlays at lowered Y position with dynamic multi-line wrapping
     pre_rendered = {}
     for start_t, end_t, text in SENTENCE_TIMINGS:
         bbox = font.getbbox(text)
         text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
+        if text_w > 560:
+            lines = textwrap.wrap(text, width=28)
+        else:
+            lines = [text]
 
         overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(overlay)
 
-        x = (width - text_w) // 2
-        y = SUBTITLE_Y
+        line_h = 36
+        y_start = SUBTITLE_Y if len(lines) == 1 else (SUBTITLE_Y - 18)
 
-        # Drop shadow + thick black outline (stroke) - NO BOX
-        draw.text((x + 3, y + 3), text, font=font, fill=(0, 0, 0, 220))
-        draw.text((x, y), text, font=font, fill=text_color, stroke_width=4, stroke_fill=(0, 0, 0, 255))
+        for i, line in enumerate(lines):
+            l_bbox = font.getbbox(line)
+            lw = l_bbox[2] - l_bbox[0]
+            lx = (width - lw) // 2
+            ly = y_start + i * line_h
+
+            # Drop shadow + thick black outline (stroke) - NO BOX, NO CLIPPING
+            draw.text((lx + 2, ly + 2), line, font=font, fill=(0, 0, 0, 220))
+            draw.text((lx, ly), line, font=font, fill=text_color, stroke_width=4, stroke_fill=(0, 0, 0, 255))
 
         pre_rendered[text] = overlay
 
-    roi_y1, roi_y2 = 740, 870
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    print("[RENDER] Detecting camera shot cuts for temporal background synthesis...")
+    cuts = [0]
+    for f in range(1, len(frames)):
+        prev_g = cv2.cvtColor(frames[f-1], cv2.COLOR_BGR2GRAY)
+        curr_g = cv2.cvtColor(frames[f], cv2.COLOR_BGR2GRAY)
+        diff = np.mean(cv2.absdiff(curr_g, prev_g))
+        if diff > 25:
+            cuts.append(f)
+    cuts.append(len(frames))
 
-    frame_idx = 0
-    print("[RENDER] Applying continuous inpaint on old text & burning lowered sentences...")
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    patch_y1, patch_y2 = 760, 840
+    patch_x1, patch_x2 = 240, 480
+    mask_patch = np.full((patch_y2 - patch_y1, patch_x2 - patch_x1), 255, dtype=np.uint8)
+    center = ((patch_x1 + patch_x2) // 2, (patch_y1 + patch_y2) // 2)
 
-        # Inpaint old flashing single words on EVERY frame in the old subtitle zone
-        roi = frame[roi_y1:roi_y2, :]
-        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        mask = (gray > 195).astype(np.uint8) * 255
-        if np.any(mask):
-            mask_dil = cv2.dilate(mask, kernel, iterations=1)
-            full_mask = np.zeros((height, width), dtype=np.uint8)
-            full_mask[roi_y1:roi_y2, :] = mask_dil
-            frame = cv2.inpaint(frame, full_mask, inpaintRadius=7, flags=cv2.INPAINT_TELEA)
+    print(f"[RENDER] Removing single-character subtitles across {len(cuts)-1} camera shots...")
+    cleaned_frames = [f.copy() for f in frames]
 
+    for s in range(len(cuts)-1):
+        start_f, end_f = cuts[s], cuts[s+1]
+        scores = []
+        for f in range(start_f, end_f):
+            roi = frames[f][patch_y1:patch_y2, patch_x1:patch_x2]
+            w = np.sum((roi[:,:,0] > 225) & (roi[:,:,1] > 225) & (roi[:,:,2] > 225))
+            scores.append((w, f))
+
+        clean_candidates = [f for w, f in scores if w < 200]
+        if not clean_candidates:
+            clean_candidates = [min(scores, key=lambda x: x[0])[1]]
+
+        for f in range(start_f, end_f):
+            roi = frames[f][patch_y1:patch_y2, patch_x1:patch_x2]
+            w = np.sum((roi[:,:,0] > 225) & (roi[:,:,1] > 225) & (roi[:,:,2] > 225))
+            if w >= 200:
+                nearest_clean = min(clean_candidates, key=lambda c: abs(c - f))
+                ref_patch = frames[nearest_clean][patch_y1:patch_y2, patch_x1:patch_x2].copy()
+                dst = frames[f].copy()
+                try:
+                    cloned = cv2.seamlessClone(ref_patch, dst, mask_patch.copy(), center, cv2.NORMAL_CLONE)
+                    cleaned_frames[f] = cloned
+                except Exception:
+                    pass
+
+    print("[RENDER] Burning lowered sentences onto pristine footage...")
+    for frame_idx, frame in enumerate(cleaned_frames):
         current_time = frame_idx / fps
         active_text = None
         for start_t, end_t, text in SENTENCE_TIMINGS:
@@ -104,9 +149,6 @@ def render_boxless_video(src_path: Path, out_path: Path, text_color=(255, 255, 2
         else:
             writer.write(frame)
 
-        frame_idx += 1
-
-    cap.release()
     writer.release()
     print("[RENDER] Frame processing complete. Muxing audio...")
 

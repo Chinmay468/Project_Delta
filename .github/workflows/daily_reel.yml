@@ -60,20 +60,34 @@ jobs:
 
       - name: Post Next Scheduled Reel
         env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_SESSIONID: ${{ secrets.INSTAGRAM_SESSIONID }}
           FB_PAGE_ID: "1304317289439428"
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          if [ -n "${{ inputs.post_index }}" ]; then
-            echo "[RUN] Posting Reel #${{ inputs.post_index }} to @sitcomvaultdaily..."
-            python scripts/instagram_reels_uploader.py --post-index "${{ inputs.post_index }}"
-          elif [ "${{ inputs.dry_run }}" = "true" ]; then
-            echo "[RUN] Running in dry-run status check mode..."
-            python scripts/instagram_reels_uploader.py --status
+          if [ -n "${{ secrets.INSTAGRAM_ACCESS_TOKEN }}" ] || [ -n "${{ secrets.META_ACCESS_TOKEN }}" ]; then
+            echo "[RUN] Using official Meta Instagram Graph API (Permanent System User Token)..."
+            if [ -n "${{ inputs.post_index }}" ]; then
+              python scripts/instagram_graph_publisher.py --post-index "${{ inputs.post_index }}"
+            elif [ "${{ inputs.dry_run }}" = "true" ]; then
+              python scripts/instagram_graph_publisher.py --dry-run
+            else
+              python scripts/instagram_graph_publisher.py --post-next
+            fi
           else
-            echo "[RUN] Posting next scheduled Reel to @sitcomvaultdaily..."
-            python scripts/instagram_reels_uploader.py --post-next
+            echo "[RUN] Using browser session publisher (INSTAGRAM_SESSIONID)..."
+            if [ -n "${{ inputs.post_index }}" ]; then
+              echo "[RUN] Posting Reel #${{ inputs.post_index }} to @sitcomvaultdaily..."
+              python scripts/instagram_reels_uploader.py --post-index "${{ inputs.post_index }}"
+            elif [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "[RUN] Running in dry-run status check mode..."
+              python scripts/instagram_reels_uploader.py --status
+            else
+              echo "[RUN] Posting next scheduled Reel to @sitcomvaultdaily..."
+              python scripts/instagram_reels_uploader.py --post-next
+            fi
           fi
 
       - name: Post Reel to Facebook Page

@@ -655,9 +655,10 @@ def post_next_reel(cl: Client = None, target_index: int = None) -> bool:
         try:
             sys.path.append(str(REPO_ROOT / "scripts"))
             from telegram_notifier import notify_published
+            username_display = getattr(cl, 'username', None) or 'sitcomvaultdaily'
             notify_published(
                 platform="Instagram",
-                channel=f"@{getattr(cl, 'username', 'sitcomvaultdaily')}",
+                channel=f"@{username_display}",
                 title=next_item.get("title", ""),
                 url=reel_url,
                 queue_index=next_item.get("queue_index")

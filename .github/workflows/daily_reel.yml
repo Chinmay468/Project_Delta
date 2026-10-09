@@ -59,6 +59,7 @@ jobs:
           find ./media_downloads -maxdepth 2 -type f | head -n 20
 
       - name: Post Next Scheduled Reel
+        continue-on-error: true
         env:
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
@@ -91,6 +92,7 @@ jobs:
           fi
 
       - name: Post Reel to Facebook Page
+        continue-on-error: true
         env:
           FB_PAGE_ID: "1304317289439428"
           FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
@@ -109,7 +111,7 @@ jobs:
           fi
 
       - name: Commit and Push Updated Queue
-        if: ${{ !inputs.dry_run }}
+        if: always() && !inputs.dry_run
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Actions Bot"

@@ -4,5 +4,8 @@ google-auth-oauthlib
 google-api-python-client
 opencv-python-headless
 instagrapi
+moviepy==2.2.1
+Pillow
 playwright
 yt-dlp
+

@@ -164,10 +164,28 @@ def download_from_mega(mega_folder, filename, download_dir, item=None, cfg=None)
             log(f"Successfully retrieved from MEGA (exact match): {matched[0]}")
             return matched[0]
 
+    # 1b. Check item file_name if different from clean_name
+    if item and item.get("file_name"):
+        item_fname = Path(str(item["file_name"]).replace("\\", "/")).name
+        matched_item = [p for p in download_dir.rglob("*") if p.is_file() and p.name == item_fname and p.stat().st_size > 0]
+        if matched_item:
+            log(f"Successfully retrieved from MEGA (matched by item file_name '{item_fname}'): {matched_item[0]}")
+            return matched_item[0]
+
+    # 1c. Match by video stem prefix (e.g. diepvo8265_02_part1)
+    if clean_name and "_" in clean_name:
+        parts = clean_name.split("_")
+        if len(parts) >= 3:
+            prefix = "_".join(parts[:3])
+            matched_prefix = [p for p in download_dir.rglob("*.mp4") if p.is_file() and p.name.startswith(prefix) and p.stat().st_size > 0]
+            if matched_prefix:
+                log(f"Successfully retrieved from MEGA (matched by prefix '{prefix}'): {matched_prefix[0]}")
+                return matched_prefix[0]
+
     # 2. Fuzzy match by video ID or index in downloaded files (handles emoji discrepancies between Windows/Linux)
     if item:
         vid_id = item.get("id", "").replace("asset_vault_", "")
-        idx = item.get("index")
+        idx = item.get("index") or item.get("queue_index")
         for f in download_dir.rglob("*.mp4"):
             if f.is_file() and f.stat().st_size > 0:
                 if vid_id and vid_id in f.name:
@@ -379,101 +397,116 @@ def main():
         log(f"[SCHEDULE GUARD] Next item #{next_item.get('index', 1)} is scheduled for {item_date}. Current date is {today_str}. Upcoming dates are already scheduled on YouTube Studio. Skipping run.")
         return
 
-    # Authenticate
-    creds = get_credentials(cfg)
-    youtube = build("youtube", "v3", credentials=creds)
+    try:
+        # Authenticate
+        creds = get_credentials(cfg)
+        youtube = build("youtube", "v3", credentials=creds)
 
-    # Resolve filename and mega folder
-    filename = next_item.get("filename")
-    if not filename and "local_path" in next_item:
-        filename = Path(next_item["local_path"]).name
+        # Resolve filename and mega folder
+        filename = next_item.get("filename") or next_item.get("file_name")
+        if not filename and "local_path" in next_item:
+            filename = Path(next_item["local_path"]).name
 
-    mega_folder = next_item.get("mega_folder") or q_data.get("mega_folder") or cfg.get("mega_folder")
+        mega_folder = next_item.get("mega_folder") or q_data.get("mega_folder") or cfg.get("mega_folder")
 
-    # Download file
-    temp_dir = ROOT / "media_downloads"
-    video_path = download_from_mega(mega_folder, filename, temp_dir, item=next_item, cfg=cfg)
+        # Download file
+        temp_dir = ROOT / "media_downloads"
+        video_path = download_from_mega(mega_folder, filename, temp_dir, item=next_item, cfg=cfg)
 
-    # Check if a high-retention trim window is defined for this clip
-    trim_start = next_item.get("trim_start")
-    trim_end = next_item.get("trim_end")
-    if trim_start is not None and trim_end is not None and "_sentences_" not in video_path.name:
-        duration = float(trim_end) - float(trim_start)
-        log(f"[TRIM] High-retention trim specified: {trim_start}s -> {trim_end}s ({duration:.1f}s total duration)")
-        trimmed_name = f"{video_path.stem}_trim_{int(trim_start)}_{int(trim_end)}.mp4"
-        trimmed_file = temp_dir / trimmed_name
-        if not trimmed_file.exists():
-            trim_cmd = [
-                "ffmpeg", "-y",
-                "-ss", str(trim_start),
-                "-to", str(trim_end),
-                "-i", str(video_path),
-                "-c:v", "libx264",
-                "-c:a", "aac",
-                "-avoid_negative_ts", "make_zero",
-                str(trimmed_file)
-            ]
-            res = subprocess.run(trim_cmd, capture_output=True, text=True)
-            if res.returncode == 0 and trimmed_file.exists():
-                log(f"[TRIM] Optimization complete! Using trimmed file: {trimmed_file}")
-                video_path = trimmed_file
+        # Check if a high-retention trim window is defined for this clip
+        trim_start = next_item.get("trim_start")
+        trim_end = next_item.get("trim_end")
+        if trim_start is not None and trim_end is not None and "_sentences_" not in video_path.name:
+            duration = float(trim_end) - float(trim_start)
+            log(f"[TRIM] High-retention trim specified: {trim_start}s -> {trim_end}s ({duration:.1f}s total duration)")
+            trimmed_name = f"{video_path.stem}_trim_{int(trim_start)}_{int(trim_end)}.mp4"
+            trimmed_file = temp_dir / trimmed_name
+            if not trimmed_file.exists():
+                trim_cmd = [
+                    "ffmpeg", "-y",
+                    "-ss", str(trim_start),
+                    "-to", str(trim_end),
+                    "-i", str(video_path),
+                    "-c:v", "libx264",
+                    "-c:a", "aac",
+                    "-avoid_negative_ts", "make_zero",
+                    str(trimmed_file)
+                ]
+                res = subprocess.run(trim_cmd, capture_output=True, text=True)
+                if res.returncode == 0 and trimmed_file.exists():
+                    log(f"[TRIM] Optimization complete! Using trimmed file: {trimmed_file}")
+                    video_path = trimmed_file
+                else:
+                    log(f"[TRIM] Warning: Trim command failed, proceeding with original: {res.stderr[-150:]}")
             else:
-                log(f"[TRIM] Warning: Trim command failed, proceeding with original: {res.stderr[-150:]}")
-        else:
-            log(f"[TRIM] Using pre-trimmed file: {trimmed_file}")
-            video_path = trimmed_file
+                log(f"[TRIM] Using pre-trimmed file: {trimmed_file}")
+                video_path = trimmed_file
 
-    # Upload
-    vid_id = upload_short(youtube, video_path, next_item, cfg, dry_run=args.dry_run)
-    yt_url = f"https://www.youtube.com/shorts/{vid_id}"
+        # Upload
+        vid_id = upload_short(youtube, video_path, next_item, cfg, dry_run=args.dry_run)
+        yt_url = f"https://www.youtube.com/shorts/{vid_id}"
 
-    if not args.dry_run:
-        # Update item in queue
-        next_item["youtube_id"] = vid_id
-        next_item["youtube_url"] = yt_url
-        next_item["published_at"] = datetime.now().isoformat()
+        if not args.dry_run:
+            # Update item in queue
+            next_item["youtube_id"] = vid_id
+            next_item["youtube_url"] = yt_url
+            next_item["published_at"] = datetime.now().isoformat()
 
-        if args.channel == "sitcom_vault":
-            # For Sitcom Vault, queue status tracks Instagram posting
-            if next_item.get("instagram_media_id"):
+            if args.channel == "sitcom_vault":
+                # For Sitcom Vault, queue status tracks Instagram posting
+                if next_item.get("instagram_media_id"):
+                    next_item["status"] = "posted"
+                # Recalculate counts based on Instagram media ID
+                if "posted_items" in q_data:
+                    q_data["posted_items"] = sum(1 for q in queue if q.get("instagram_media_id"))
+                if "pending_items" in q_data:
+                    q_data["pending_items"] = sum(1 for q in queue if not q.get("instagram_media_id"))
+            else:
                 next_item["status"] = "posted"
-            # Recalculate counts based on Instagram media ID
-            if "posted_items" in q_data:
-                q_data["posted_items"] = sum(1 for q in queue if q.get("instagram_media_id"))
-            if "pending_items" in q_data:
-                q_data["pending_items"] = sum(1 for q in queue if not q.get("instagram_media_id"))
+                if "posted_items" in q_data:
+                    q_data["posted_items"] = sum(1 for q in queue if q.get("status") == "posted")
+                if "pending_items" in q_data:
+                    q_data["pending_items"] = sum(1 for q in queue if q.get("status") in ["pending", "ready_to_schedule"])
+
+            with open(queue_file, "w", encoding="utf-8") as f:
+                json.dump(q_data, f, indent=2, ensure_ascii=False)
+
+            log(f"Updated queue file: {queue_file}")
+            log(f"[ALL DONE] {cfg['name']} Reel published: {yt_url}")
+
+            # Send Telegram notification ping
+            try:
+                sys.path.append(str(ROOT / "scripts"))
+                from telegram_notifier import notify_published
+                notify_published(
+                    platform="YouTube",
+                    channel=f"{cfg['name']} ({cfg['handle']})",
+                    title=next_item.get("title", ""),
+                    url=yt_url,
+                    queue_index=next_item.get("index", next_item.get("queue_index"))
+                )
+            except Exception as tel_err:
+                log(f"[TELEGRAM] Notice: ping skipped ({tel_err})")
+
+            # Commit and push in GitHub Actions
+            commit_msg = f"chore(youtube): publish {cfg['name']} short #{next_item.get('index', 1)} ({vid_id})"
+            commit_and_push_queue(queue_file, commit_msg)
         else:
-            next_item["status"] = "posted"
-            if "posted_items" in q_data:
-                q_data["posted_items"] = sum(1 for q in queue if q.get("status") == "posted")
-            if "pending_items" in q_data:
-                q_data["pending_items"] = sum(1 for q in queue if q.get("status") in ["pending", "ready_to_schedule"])
-
-        with open(queue_file, "w", encoding="utf-8") as f:
-            json.dump(q_data, f, indent=2, ensure_ascii=False)
-
-        log(f"Updated queue file: {queue_file}")
-        log(f"[ALL DONE] {cfg['name']} Reel published: {yt_url}")
-
-        # Send Telegram notification ping
+            log("[DRY RUN] Complete! Queue was not modified.")
+    except Exception as run_err:
+        log(f"[PUBLISH ERROR] Failed to publish video: {run_err}")
         try:
             sys.path.append(str(ROOT / "scripts"))
-            from telegram_notifier import notify_published
-            notify_published(
+            from telegram_notifier import notify_error
+            notify_error(
                 platform="YouTube",
                 channel=f"{cfg['name']} ({cfg['handle']})",
-                title=next_item.get("title", ""),
-                url=yt_url,
-                queue_index=next_item.get("index", next_item.get("queue_index"))
+                error_msg=str(run_err),
+                title=next_item.get("title", "Unknown")
             )
         except Exception as tel_err:
-            log(f"[TELEGRAM] Notice: ping skipped ({tel_err})")
-
-        # Commit and push in GitHub Actions
-        commit_msg = f"chore(youtube): publish {cfg['name']} short #{next_item.get('index', 1)} ({vid_id})"
-        commit_and_push_queue(queue_file, commit_msg)
-    else:
-        log("[DRY RUN] Complete! Queue was not modified.")
+            log(f"[TELEGRAM] Warning: Failed to send failure alert: {tel_err}")
+        raise run_err
 
 if __name__ == "__main__":
     main()

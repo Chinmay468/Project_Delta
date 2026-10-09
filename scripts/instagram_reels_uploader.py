@@ -436,15 +436,37 @@ def build_or_sync_queue(ig_username: str = None) -> dict:
 
 
 def extract_thumbnail_if_needed(video_path: Path) -> Path:
-    """Extracts a high-quality frame from the video using OpenCV to serve as the Reel thumbnail."""
+    """
+    Extracts a high-quality frame from the video to serve as the Reel thumbnail.
+    Uses ffmpeg as primary extractor (supports AV1, software decode on Linux runners without GPU).
+    Falls back to OpenCV, and finally to a clean placeholder if all else fails.
+    """
     thumb_path = video_path.with_suffix(".jpg")
     if thumb_path.exists() and thumb_path.stat().st_size > 1000:
         return thumb_path
 
+    # Method 1: ffmpeg CLI (fastest, codec-agnostic, handles AV1 on headless Linux runners)
+    for timestamp in ["00:00:01.5", "00:00:00.5", "00:00:00.0"]:
+        try:
+            cmd = [
+                "ffmpeg", "-y",
+                "-ss", timestamp,
+                "-i", str(video_path),
+                "-vframes", "1",
+                "-q:v", "2",
+                str(thumb_path)
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if res.returncode == 0 and thumb_path.exists() and thumb_path.stat().st_size > 1000:
+                print(f"[THUMBNAIL] Successfully extracted thumbnail via ffmpeg at {timestamp}: {thumb_path.name}")
+                return thumb_path
+        except Exception as ffmpeg_err:
+            pass
+
+    # Method 2: OpenCV fallback
     try:
         import cv2
         cap = cv2.VideoCapture(str(video_path))
-        # Grab frame at 1.5 seconds into the video
         cap.set(cv2.CAP_PROP_POS_MSEC, 1500)
         ret, frame = cap.read()
         if not ret:
@@ -454,9 +476,21 @@ def extract_thumbnail_if_needed(video_path: Path) -> Path:
 
         if ret and frame is not None:
             cv2.imwrite(str(thumb_path), frame)
-            return thumb_path
-    except Exception as e:
-        print(f"[WARN] OpenCV thumbnail extraction notice: {e}")
+            if thumb_path.exists() and thumb_path.stat().st_size > 1000:
+                print(f"[THUMBNAIL] Successfully extracted thumbnail via OpenCV: {thumb_path.name}")
+                return thumb_path
+    except Exception as cv_err:
+        print(f"[WARN] OpenCV thumbnail extraction notice: {cv_err}")
+
+    # Method 3: Safe fallback generation (ensures instagrapi never attempts MoviePy fallback)
+    try:
+        from PIL import Image
+        img = Image.new("RGB", (1080, 1920), color=(15, 15, 25))
+        img.save(str(thumb_path), format="JPEG", quality=90)
+        print(f"[THUMBNAIL] Generated safe fallback thumbnail cover: {thumb_path.name}")
+        return thumb_path
+    except Exception as img_err:
+        print(f"[WARN] Fallback image generation notice: {img_err}")
 
     return None
 
